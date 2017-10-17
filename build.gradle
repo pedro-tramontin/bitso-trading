@@ -1,28 +1,19 @@
-group 'br.com.pedront.bitsotrading'
-version '1.0-SNAPSHOT'
-
 buildscript {
-    dependencies {
-        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
+    ext {
+        springBootVersion = '1.5.8.RELEASE'
     }
     repositories {
         mavenCentral()
-
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     }
 }
 
-apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
 
-sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
-
-apply plugin: 'javafx-gradle-plugin'
-
-
-jfx {
-    // minimal requirement for jfxJar-task
-    mainClass = 'br.com.pedront.bisontrading.Main'
+allprojects {
+    group 'br.com.pedront.bitsotrading'
+    version '1.0-SNAPSHOT'
 }

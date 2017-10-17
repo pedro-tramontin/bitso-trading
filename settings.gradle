@@ -1,2 +1,6 @@
 rootProject.name = 'BitsoTrading'
 
+include 'bitso-trading-service'
+include 'bitso-trading-core'
+include 'bitso-trading-javafx'
+
