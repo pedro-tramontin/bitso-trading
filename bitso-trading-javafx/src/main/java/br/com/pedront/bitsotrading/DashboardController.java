@@ -27,7 +27,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 @FXMLController
-public class SampleController implements Initializable {
+public class DashboardController implements Initializable {
 
     @FXML
     private Label helloLabel;

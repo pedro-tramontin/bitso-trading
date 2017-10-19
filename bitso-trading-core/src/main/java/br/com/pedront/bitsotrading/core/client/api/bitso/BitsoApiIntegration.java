@@ -19,7 +19,7 @@ public interface BitsoApiIntegration {
     AvailableBooksResponseDTO getAvailableBooks();
 
     @RequestMapping(value = "/v3/ticker/", method = RequestMethod.GET)
-    TickerResponseDTO getTicker(@RequestParam("book") String book);
+    TickerResponseDTO getTicker(@RequestParam(value = "book", required = false) String book);
 
     @RequestMapping(value = "/v3/order_book/", method = RequestMethod.GET)
     OrderResponseDTO getOrder(@RequestParam(value = "book") String book);
