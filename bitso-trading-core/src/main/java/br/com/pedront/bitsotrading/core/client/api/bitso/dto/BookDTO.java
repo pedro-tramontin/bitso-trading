@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *          $Id: $
  * @since 10/17/17 5:18 PM
  */
-public class Book {
+public class BookDTO {
 
     private String book;
 

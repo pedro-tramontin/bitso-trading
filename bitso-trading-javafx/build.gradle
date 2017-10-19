@@ -1,19 +1,16 @@
 buildscript {
-    ext {
-        springBootVersion = '1.5.8.RELEASE'
-    }
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'de.dynamicfiles.projects.gradle.plugins:javafx-gradle-plugin:8.8.2'
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'javafx-gradle-plugin'
-apply plugin: 'org.springframework.boot'
+apply plugin: "io.spring.dependency-management"
 
 sourceCompatibility = 1.8
 
@@ -22,12 +19,19 @@ repositories {
 }
 
 jfx {
-    // minimal requirement for jfxJar-task
-    mainClass = 'br.com.pedront.bisontrading.Main'
+    mainClass = 'br.com.pedront.bitsotrading.Main'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Dalston.SR4'
+    }
 }
 
 dependencies {
-    compile('org.springframework.boot:spring-boot-starter')
+    compile 'org.springframework.boot:spring-boot-starter'
+    compile 'de.roskenet:springboot-javafx-support:1.4.1'
 
     compile project(':bitso-trading-core')
 }

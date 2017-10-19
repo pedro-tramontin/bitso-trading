@@ -1,17 +1,4 @@
-buildscript {
-    ext {
-        springBootVersion = '1.5.8.RELEASE'
-    }
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-    }
-}
-
 apply plugin: 'idea'
-apply plugin: 'org.springframework.boot'
 
 allprojects {
     group 'br.com.pedront.bitsotrading'
