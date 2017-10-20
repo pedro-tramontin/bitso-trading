@@ -15,7 +15,7 @@ import de.felixroske.jfxsupport.AbstractJavaFxApplicationSupport;
 public class Main extends AbstractJavaFxApplicationSupport {
 
     public static void main(String[] args) {
-        launchApp(Main.class, SampleView.class, args);
+        launchApp(Main.class, DashboardView.class, args);
     }
 
     /*
