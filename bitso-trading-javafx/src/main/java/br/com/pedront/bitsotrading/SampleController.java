@@ -128,40 +128,38 @@ public class SampleController implements Initializable {
         strBuilder
                 .append(String.format("success: %s\n", orderResponse.getSuccess()));
 
-        final List<OrderPayloadDTO> orderPayloads = orderResponse.getPayload();
-        for (OrderPayloadDTO orderPayload : orderPayloads) {
+        final OrderPayloadDTO orderPayload = orderResponse.getPayload();
+        strBuilder
+                .append("----------\n")
+                .append(String.format("Updated At: %s\n", orderPayload.getUpdatedAt()))
+                .append(String.format("Sequence: %s\n", orderPayload.getSequence()))
+                .append("Asks\n");
+
+        for (OrderDTO ask : orderPayload.getAsks()) {
             strBuilder
-                    .append("----------\n")
-                    .append(String.format("Updated At: %s\n", orderPayload.getUpdatedAt()))
-                    .append(String.format("Sequence: %s\n", orderPayload.getSequence()))
-                    .append("Asks\n");
+                    .append(String.format("  Book: %s\n", ask.getBook()))
+                    .append(String.format("  Price: %s\n", ask.getPrice()))
+                    .append(String.format("  Amount: %s\n", ask.getAmount()))
+                    .append(String.format("  OID: %s\n", ask.getOid()))
+                    .append("--\n");
+        }
 
-            for (OrderDTO ask : orderPayload.getAsks()) {
-                strBuilder
-                        .append(String.format("  Book: %s\n", ask.getBook()))
-                        .append(String.format("  Price: %s\n", ask.getPrice()))
-                        .append(String.format("  Amount: %s\n", ask.getAmount()))
-                        .append(String.format("  OID: %s\n", ask.getOid()))
-                        .append("--\n");
-            }
+        strBuilder.append("Bids\n");
 
-            strBuilder.append("Bids\n");
-
-            for (OrderDTO bid : orderPayload.getBids()) {
-                strBuilder
-                        .append(String.format("  Book: %s\n", bid.getBook()))
-                        .append(String.format("  Price: %s\n", bid.getPrice()))
-                        .append(String.format("  Amount: %s\n", bid.getAmount()))
-                        .append(String.format("  OID: %s\n", bid.getOid()))
-                        .append("--\n");
-            }
+        for (OrderDTO bid : orderPayload.getBids()) {
+            strBuilder
+                    .append(String.format("  Book: %s\n", bid.getBook()))
+                    .append(String.format("  Price: %s\n", bid.getPrice()))
+                    .append(String.format("  Amount: %s\n", bid.getAmount()))
+                    .append(String.format("  OID: %s\n", bid.getOid()))
+                    .append("--\n");
         }
 
         orderBookTextarea.setText(strBuilder.toString());
     }
 
     private void getTrade(String book) {
-        final TradeResponseDTO tradeResponse = bitsoApiIntegration.getTrade(book);
+        final TradeResponseDTO tradeResponse = bitsoApiIntegration.getTrade(book, null);
 
         StringBuilder strBuilder = new StringBuilder();
         strBuilder

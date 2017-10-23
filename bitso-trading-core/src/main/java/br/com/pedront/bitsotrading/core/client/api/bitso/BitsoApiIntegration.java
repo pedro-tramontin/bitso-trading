@@ -25,5 +25,5 @@ public interface BitsoApiIntegration {
     OrderResponseDTO getOrder(@RequestParam(value = "book") String book);
 
     @RequestMapping(value = "/v3/trades/", method = RequestMethod.GET)
-    TradeResponseDTO getTrade(@RequestParam(value = "book") String book);
+    TradeResponseDTO getTrade(@RequestParam(value = "book") String book, @RequestParam(value = "marker", required = false) String marker);
 }

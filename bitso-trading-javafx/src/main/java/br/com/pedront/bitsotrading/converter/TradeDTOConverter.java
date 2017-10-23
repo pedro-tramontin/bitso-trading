@@ -37,6 +37,8 @@ public class TradeDTOConverter {
     }
 
     private static Trade convert(final TradeDTO tradeDTO) {
+        System.out.println(tradeDTO.getTid());
+
         return new Trade(fromISO8601ToRFC1123(tradeDTO.getCreatedAt()), tradeDTO.getMakerSide(), tradeDTO.getAmount(),
                 tradeDTO.getPrice());
     }

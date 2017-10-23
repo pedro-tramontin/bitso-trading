@@ -5,7 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 /**
  * @author ptramontin
  * @version $Revision: $<br/>
- *          $Id: $
+ * $Id: $
  * @since 10/20/17 4:31 PM
  */
 public class Trade {
@@ -71,5 +71,15 @@ public class Trade {
 
     public void setPrice(final String price) {
         priceProperty().set(price);
+    }
+
+    @Override
+    public String toString() {
+        return "Trade{" +
+                "createdAt=" + getCreatedAt() +
+                ", makerSide=" + getMakerSide() +
+                ", amount=" + getAmount() +
+                ", price=" + getPrice() +
+                '}';
     }
 }

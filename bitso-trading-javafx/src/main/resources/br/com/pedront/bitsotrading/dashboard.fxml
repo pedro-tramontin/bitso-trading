@@ -86,7 +86,7 @@
                     </padding>
 
                     <Label text="X:"/>
-                    <TextField fx:id="xTextField" promptText="X" maxWidth="50.0"/>
+                    <TextField fx:id="xTextField" promptText="X" text="10" maxWidth="100.0"/>
                 </HBox>
 
                 <Label text="THE NUMBER OF BIDS, ASKS, AND TRADES TO SHOW" wrapText="true"
@@ -101,7 +101,7 @@
                     </padding>
 
                     <Label text="M:"/>
-                    <TextField fx:id="mTextField" promptText="M" maxWidth="50.0"/>
+                    <TextField fx:id="mTextField" promptText="M" maxWidth="100.0"/>
                 </HBox>
 
                 <Label text="THE NUMBER OF UPTICKS" wrapText="true" style="-fx-font-size: 10px;"/>
@@ -112,7 +112,7 @@
                     </padding>
 
                     <Label text="N:"/>
-                    <TextField fx:id="nTextField" promptText="N" maxWidth="50.0"/>
+                    <TextField fx:id="nTextField" promptText="N" maxWidth="100.0"/>
                 </HBox>
 
                 <Label text="THE NUMBER OF DOWNTICKS" wrapText="true" style="-fx-font-size: 10px;"/>
