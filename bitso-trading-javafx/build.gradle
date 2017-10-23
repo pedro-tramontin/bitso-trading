@@ -33,5 +33,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter'
     compile 'de.roskenet:springboot-javafx-support:1.4.1'
 
+    compile 'org.glassfish.tyrus.bundles:tyrus-standalone-client-jdk:1.12'
+
     compile project(':bitso-trading-core')
 }

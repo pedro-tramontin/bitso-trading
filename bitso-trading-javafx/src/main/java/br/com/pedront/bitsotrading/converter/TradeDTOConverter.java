@@ -18,7 +18,12 @@ import br.com.pedront.bitsotrading.model.Trade;
  */
 public class TradeDTOConverter {
 
-    private static final String BITSO_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
+    /**
+     * The Bitso API ISO 8601 time patternz<br/>
+     * The predefined formatters DateTimeFormatter.ISO_OFFSET_DATE_TIME cannot be used, because the offset is expected
+     * to follow the pattern (+HH:mm:ss) instead of (+ZZZZ)
+     */
+    private static final String BITSO_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss[.SSS]Z";
 
     private static final DateTimeFormatter utcFormatter = initUtcFormatter();
 
@@ -29,7 +34,7 @@ public class TradeDTOConverter {
     }
 
     private static DateTimeFormatter initUtcFormatter() {
-        return DateTimeFormatter.ofPattern(BITSO_DATE_PATTERN).withZone(ZoneId.of("UTC"));
+        return DateTimeFormatter.ofPattern(BITSO_DATE_PATTERN);
     }
 
     private static String fromISO8601ToRFC1123(String iso8601Timestamp) {
@@ -37,8 +42,6 @@ public class TradeDTOConverter {
     }
 
     private static Trade convert(final TradeDTO tradeDTO) {
-        System.out.println(tradeDTO.getTid());
-
         return new Trade(fromISO8601ToRFC1123(tradeDTO.getCreatedAt()), tradeDTO.getMakerSide(), tradeDTO.getAmount(),
                 tradeDTO.getPrice());
     }
