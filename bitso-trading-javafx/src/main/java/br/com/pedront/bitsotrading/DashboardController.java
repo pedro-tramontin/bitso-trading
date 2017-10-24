@@ -1,18 +1,21 @@
 package br.com.pedront.bitsotrading;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfig;
-import javax.websocket.DeploymentException;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
+import javax.websocket.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.glassfish.tyrus.client.ClientManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,6 +40,7 @@ import javafx.scene.control.TextField;
 import javafx.util.converter.NumberStringConverter;
 
 @FXMLController
+@ClientEndpoint
 public class DashboardController implements Initializable {
 
     private static final String book = "btc_mxn";
@@ -64,36 +68,122 @@ public class DashboardController implements Initializable {
 
     private final SimpleIntegerProperty xInteger = new SimpleIntegerProperty();
 
+    private final BlockingQueue<DiffOrder> ordersQueue = new LinkedBlockingQueue<>();
+
+    private ObservableList<OrderDTO> obsAsks;
+
+    private ObservableList<OrderDTO> obsBids;
+
+    private FilteredList<OrderDTO> filteredAsks;
+
+    private FilteredList<OrderDTO> filteredBids;
+
+    private Runnable orderQueueConsumer;
+
     @Autowired
     private BitsoApiIntegration bitsoApiIntegration;
 
-    @Override
-    public void initialize(final URL location, final ResourceBundle resources) {
-
-        ClientEndpointConfig config = ClientEndpointConfig.Builder.create().build();
-
-        ClientManager client = ClientManager.createClient();
+    @OnOpen
+    public void onOpen(Session session) {
+        System.out.println("Connected ... " + session.getId());
         try {
-            client.connectToServer(new Endpoint() {
+            Subscribe subscribe = new Subscribe("subscribe", "btc_mxn", "diff-orders");
 
-                @Override
-                public void onOpen(final Session session, final EndpointConfig config) {
-                    session.addMessageHandler(new MessageHandler.Whole<String>() {
-
-                        @Override
-                        public void onMessage(final String message) {
-                            System.out.println(message);
-                        }
-                    });
-                }
-            }, config, new URI("wss://ws.bitso.com"));
-        } catch (DeploymentException e) {
-            e.printStackTrace();
+            session.getBasicRemote().sendText(new ObjectMapper().writeValueAsString(subscribe));
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
+            // TODO Treat exception
+            throw new RuntimeException(e);
+        }
+    }
+
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        ObjectMapper jsonMapper = new ObjectMapper();
+
+        try {
+            JsonNode jsonNode = jsonMapper.readTree(message);
+            if (jsonNode.has("action") && jsonNode.has("response")) {
+                String action = jsonNode.get("action").asText();
+                String response = jsonNode.get("response").asText();
+
+                if ("subscribe".equals(action) && "ok".equals(response)) {
+                    System.out.println("Subcribe to Diff-Order OK!");
+
+                    orderQueueConsumer = () -> {
+                        while (true) {
+                            try {
+                                // Poll instead of take, don't block the thread forever
+                                DiffOrder diffOrder = ordersQueue.poll(30, TimeUnit.SECONDS);
+                                if (diffOrder != null) {
+                                    DiffOrderPayload payload = diffOrder.getPayload().get(0);
+
+                                    if ("cancelled".equals(payload.getStatus())) {
+                                        // TODO cancel this order from the list
+                                        System.out.println("Cancelled " + payload.getOid());
+                                    } else if ("completed".equals(payload.getStatus())) {
+                                        // TODO complete this order from the list
+                                        System.out.println("Completed " + payload.getOid());
+                                    } else if ("open".equals(payload.getStatus())) {
+                                        OrderDTO order = new OrderDTO(diffOrder.getBook(), payload.getValue(), payload.getAmount(), payload.getOid());
+                                        System.out.println("Processing new message " + order.toString());
+
+                                        // 0 - Buy, 1 - Sell
+                                        if ("0".equals(payload.getMakerSide())) {
+                                            if (obsBids != null) {
+                                                obsBids.add(order);
+                                            } else {
+                                                System.out.println("Bids is null");
+                                            }
+                                        } else {
+                                            if (obsAsks != null) {
+                                                obsAsks.add(order);
+                                            } else {
+                                                System.out.println("Asks is null");
+                                            }
+                                        }
+                                    } else {
+                                        // TODO Can't treat this DiffOrder
+                                        System.out.println("Error " + payload.toString());
+                                    }
+                                }
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+
+                    new Thread(orderQueueConsumer).start();
+                } else {
+                    System.out.println("Error subscribing to diff-order!");
+
+                    // TODO Try connecting at least 3 times
+                }
+            } else if (jsonNode.has("type")) {
+                DiffOrder diffOrder = jsonMapper.readValue(message, DiffOrder.class);
+
+                System.out.println(diffOrder);
+
+                // ignore Keep-Alive packages
+                if (!"ka".equals(diffOrder.getType())) {
+                    ordersQueue.put(diffOrder);
+                }
+            } else {
+                // TODO Don't know how to treat this message
+            }
+        } catch (IOException | InterruptedException e) {
+            // TODO Treat the exceptions
             e.printStackTrace();
         }
+    }
+
+    @OnClose
+    public void onClose(Session session, CloseReason closeReason) {
+        System.out.println(String.format("Session %s close because of %s", session.getId(), closeReason));
+        // TODO Check internet and try to reconnect
+    }
+
+    @Override
+    public void initialize(final URL location, final ResourceBundle resources) {
 
         final TradeResponseDTO tradeResponse = bitsoApiIntegration.getTrade(book, null);
         final OrderResponseDTO orderResponse = bitsoApiIntegration.getOrder(book);
@@ -108,15 +198,13 @@ public class DashboardController implements Initializable {
         tradesTableView.setItems(filteredTrades);
 
         // Created the observable list, filters and sets to the Asks TableView
-        final ObservableList<OrderDTO> obsAsks = FXCollections
-                .observableArrayList(orderResponse.getPayload().getAsks());
-        final FilteredList<OrderDTO> filteredAsks = obsAsks.filtered(p -> obsAsks.indexOf(p) < xInteger.get());
+        obsAsks = FXCollections.observableArrayList(orderResponse.getPayload().getAsks());
+        filteredAsks = obsAsks.filtered(p -> obsAsks.indexOf(p) < xInteger.get());
         bestAsksListView.setItems(filteredAsks);
 
         // Created the observable list, filters and sets to the Bids TableView
-        final ObservableList<OrderDTO> obsBids = FXCollections
-                .observableArrayList(orderResponse.getPayload().getBids());
-        final FilteredList<OrderDTO> filteredBids = obsBids.filtered(p -> obsBids.indexOf(p) < xInteger.get());
+        obsBids = FXCollections.observableArrayList(orderResponse.getPayload().getBids());
+        filteredBids = obsBids.filtered(p -> obsBids.indexOf(p) < xInteger.get());
         bestBidsListView.setItems(filteredBids);
 
         xTextField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -143,5 +231,13 @@ public class DashboardController implements Initializable {
                 xTextField.setText(oldValue);
             }
         });
+
+        ClientManager client = ClientManager.createClient();
+        try {
+            client.connectToServer(DashboardController.class, new URI("wss://ws.bitso.com"));
+        } catch (DeploymentException | URISyntaxException | IOException e) {
+            throw new RuntimeException(e);
+            // TODO Treat the exception
+        }
     }
 }

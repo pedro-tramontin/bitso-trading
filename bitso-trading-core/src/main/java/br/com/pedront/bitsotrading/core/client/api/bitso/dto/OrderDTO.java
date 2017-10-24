@@ -1,9 +1,11 @@
 package br.com.pedront.bitsotrading.core.client.api.bitso.dto;
 
+import org.springframework.core.annotation.Order;
+
 /**
  * @author ptramontin
  * @version $Revision: $<br/>
- *          $Id: $
+ * $Id: $
  * @since 10/18/17 6:12 PM
  */
 public class OrderDTO {
@@ -15,6 +17,16 @@ public class OrderDTO {
     private String amount;
 
     private String oid;
+
+    public OrderDTO() {
+    }
+
+    public OrderDTO(String book, String price, String amount, String oid) {
+        this.book = book;
+        this.price = price;
+        this.amount = amount;
+        this.oid = oid;
+    }
 
     public String getBook() {
         return book;
