@@ -1,27 +1,27 @@
 package br.com.pedront.bitsotrading.core.client.api.bitso.dto;
 
-import org.springframework.core.annotation.Order;
-
 /**
  * @author ptramontin
  * @version $Revision: $<br/>
- * $Id: $
+ *          $Id: $
  * @since 10/18/17 6:12 PM
  */
 public class OrderDTO {
 
+    public static final OrderDTO NULL_ORDER_DTO = new OrderDTO();
+
     private String book;
 
-    private String price;
+    private Double price;
 
-    private String amount;
+    private Double amount;
 
     private String oid;
 
     public OrderDTO() {
     }
 
-    public OrderDTO(String book, String price, String amount, String oid) {
+    public OrderDTO(String book, Double price, Double amount, String oid) {
         this.book = book;
         this.price = price;
         this.amount = amount;
@@ -36,19 +36,19 @@ public class OrderDTO {
         this.book = book;
     }
 
-    public String getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(final String price) {
+    public void setPrice(final Double price) {
         this.price = price;
     }
 
-    public String getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(final String amount) {
+    public void setAmount(final Double amount) {
         this.amount = amount;
     }
 
@@ -67,9 +67,9 @@ public class OrderDTO {
                 .append("book=\"")//
                 .append(book).append("\"")//
                 .append(",price=\"")//
-                .append(price).append("\"")//
+                .append(String.format("%.2f", price)).append("\"")//
                 .append(",amount=\"")//
-                .append(amount).append("\"")//
+                .append(String.format("%.8f", amount)).append("\"")//
                 .append(",oid=\"")//
                 .append(oid).append("\"")//
                 .append("]");

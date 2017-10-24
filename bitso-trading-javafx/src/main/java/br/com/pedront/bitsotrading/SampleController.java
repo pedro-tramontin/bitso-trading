@@ -122,7 +122,7 @@ public class SampleController implements Initializable {
     }
 
     private void getOrder(String book) {
-        final OrderResponseDTO orderResponse = bitsoApiIntegration.getOrder(book);
+        final OrderResponseDTO orderResponse = bitsoApiIntegration.getOrder(book, "false");
 
         StringBuilder strBuilder = new StringBuilder();
         strBuilder

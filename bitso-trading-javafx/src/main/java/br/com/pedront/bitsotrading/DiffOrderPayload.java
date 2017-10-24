@@ -8,16 +8,16 @@ public class DiffOrderPayload {
     private String timestamp;
 
     @JsonProperty("r")
-    private String rate;
+    private Double rate;
 
     @JsonProperty("t")
-    private String makerSide;
+    private Integer makerSide;
 
     @JsonProperty("a")
-    private String amount;
+    private Double amount;
 
     @JsonProperty("v")
-    private String value;
+    private Double value;
 
     @JsonProperty("s")
     private String status;
@@ -33,35 +33,35 @@ public class DiffOrderPayload {
         this.timestamp = timestamp;
     }
 
-    public String getRate() {
+    public Double getRate() {
         return rate;
     }
 
-    public void setRate(String rate) {
+    public void setRate(Double rate) {
         this.rate = rate;
     }
 
-    public String getMakerSide() {
+    public Integer getMakerSide() {
         return makerSide;
     }
 
-    public void setMakerSide(String makerSide) {
+    public void setMakerSide(Integer makerSide) {
         this.makerSide = makerSide;
     }
 
-    public String getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(String amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 
-    public String getValue() {
+    public Double getValue() {
         return value;
     }
 
-    public void setValue(String value) {
+    public void setValue(Double value) {
         this.value = value;
     }
 
