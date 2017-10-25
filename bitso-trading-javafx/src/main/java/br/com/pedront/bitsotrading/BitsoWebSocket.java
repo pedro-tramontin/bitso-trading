@@ -37,9 +37,9 @@ public class BitsoWebSocket {
     private DashboardController dashboardController;
 
     public BitsoWebSocket(final Runnable orderQueueConsumer,
-                          final ObservableList<OrderDTO> obsAsks,
-                          final ObservableList<OrderDTO> obsBids,
-                          final DashboardController dashboardController) {
+            final ObservableList<OrderDTO> obsAsks,
+            final ObservableList<OrderDTO> obsBids,
+            final DashboardController dashboardController) {
         this.orderQueueConsumer = orderQueueConsumer;
         this.obsAsks = FXCollections.synchronizedObservableList(obsAsks);
         this.obsBids = FXCollections.synchronizedObservableList(obsBids);
@@ -116,7 +116,8 @@ public class BitsoWebSocket {
                                                 if (foundOrder != OrderDTO.NULL_ORDER_DTO) {
                                                     final OrderDTO removeOrderDTO = foundOrder;
 
-                                                    mainViewUpdate.addRunnable(() -> orderList.remove(removeOrderDTO));
+                                                    mainViewUpdate.addRunnable(() -> dashboardController
+                                                            .removeOrder(makerSide, removeOrderDTO));
 
                                                 } else {
 
@@ -125,7 +126,6 @@ public class BitsoWebSocket {
                                                 }
 
                                                 if ("completed".equals(payload.getStatus())) {
-                                                    System.out.println("Reloading trades!");
                                                     mainViewUpdate.setReloadTrades(true);
                                                 }
                                             } else if ("open".equals(payload.getStatus())) {
@@ -134,7 +134,8 @@ public class BitsoWebSocket {
                                                 if (foundOrder != OrderDTO.NULL_ORDER_DTO) {
                                                     final OrderDTO removeOrderDTO = foundOrder;
 
-                                                    mainViewUpdate.addRunnable(() -> orderList.remove(removeOrderDTO));
+                                                    mainViewUpdate.addRunnable(() -> dashboardController
+                                                            .removeOrder(makerSide, removeOrderDTO));
                                                 }
 
                                                 OrderDTO order = new OrderDTO(diffOrder.getBook(), payload.getRate(),
@@ -143,7 +144,8 @@ public class BitsoWebSocket {
                                                         "Processing new " + payload.getMakerSide() + " message " + order
                                                                 .toString());
 
-                                                mainViewUpdate.addRunnable(() -> orderList.add(order));
+                                                mainViewUpdate.addRunnable(
+                                                        () -> dashboardController.addOrder(makerSide, order));
                                             } else {
                                                 // TODO Can't treat this DiffOrder
                                                 System.out.println("Error " + payload.toString());
@@ -157,6 +159,7 @@ public class BitsoWebSocket {
                                         }
 
                                         if (mainViewUpdate.getReloadTrades()) {
+                                            System.out.println("Reloading trades!");
                                             dashboardController.reloadTrades();
                                         }
                                     });

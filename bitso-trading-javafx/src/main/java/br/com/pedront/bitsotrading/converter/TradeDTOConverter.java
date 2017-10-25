@@ -13,7 +13,7 @@ import br.com.pedront.bitsotrading.model.Trade;
 /**
  * @author ptramontin
  * @version $Revision: $<br/>
- * $Id: $
+ *          $Id: $
  * @since 10/20/17 4:37 PM
  */
 public class TradeDTOConverter {

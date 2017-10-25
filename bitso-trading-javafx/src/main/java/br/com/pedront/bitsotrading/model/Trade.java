@@ -1,5 +1,6 @@
 package br.com.pedront.bitsotrading.model;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -7,7 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 /**
  * @author ptramontin
  * @version $Revision: $<br/>
- * $Id: $
+ *          $Id: $
  * @since 10/20/17 4:31 PM
  */
 public class Trade {
@@ -16,6 +17,7 @@ public class Trade {
     private final SimpleDoubleProperty amount = new SimpleDoubleProperty(0.0);
     private final SimpleDoubleProperty price = new SimpleDoubleProperty(0.0);
     private final SimpleIntegerProperty tid = new SimpleIntegerProperty(0);
+    private final SimpleBooleanProperty simulated = new SimpleBooleanProperty(false);
 
     public Trade() {
         this("", "", 0.0, 0.0, 0);
@@ -27,6 +29,16 @@ public class Trade {
         setAmount(amount);
         setPrice(price);
         setTid(tid);
+        setSimulated(false);
+    }
+
+    public Trade(String createdAt, String makerSide, Double amount, Double price, Integer tid, Boolean simulated) {
+        setCreatedAt(createdAt);
+        setMakerSide(makerSide);
+        setAmount(amount);
+        setPrice(price);
+        setTid(tid);
+        setSimulated(simulated);
     }
 
     public String getCreatedAt() {
@@ -89,14 +101,39 @@ public class Trade {
         this.tid.set(tid);
     }
 
+    public void setTid(final int tid) {
+        this.tid.set(tid);
+    }
+
+    public boolean isSimulated() {
+        return simulated.get();
+    }
+
+    public SimpleBooleanProperty simulatedProperty() {
+        return simulated;
+    }
+
+    public void setSimulated(final boolean simulated) {
+        this.simulated.set(simulated);
+    }
+
     @Override
     public String toString() {
-        return "Trade{" +
-                "createdAt=" + createdAt +
-                ", makerSide=" + makerSide +
-                ", amount=" + String.format("%.8f", amount) +
-                ", price=" + String.format("%.2f", price) +
-                ", tid=" + tid +
-                '}';
+        final StringBuilder builder = new StringBuilder()//
+                .append("Trade [")//
+                .append("createdAt=")//
+                .append(createdAt)//
+                .append(",makerSide=")//
+                .append(makerSide)//
+                .append(",amount=")//
+                .append(String.format("%.8f", amount.get()))//
+                .append(",price=")//
+                .append(String.format("%.2f", price.get()))//
+                .append(",tid=")//
+                .append(tid)//
+                .append(",simulated=")//
+                .append(simulated)//
+                .append("]");
+        return builder.toString();
     }
 }
