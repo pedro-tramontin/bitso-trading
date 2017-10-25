@@ -5,12 +5,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Comparator;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.websocket.DeploymentException;
 
+import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TradeDTO;
 import org.glassfish.tyrus.client.ClientManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,6 +68,7 @@ public class DashboardController implements Initializable {
     private final BlockingQueue<DiffOrder> ordersQueue = new LinkedBlockingQueue<>();
 
     private ObservableList<Trade> obsTrades;
+    private SortedList<Trade> sortedTrades;
     private FilteredList<Trade> filteredTrades;
 
     private ObservableList<OrderDTO> obsAsks;
@@ -77,6 +80,8 @@ public class DashboardController implements Initializable {
     private FilteredList<OrderDTO> filteredBids;
 
     private Runnable orderQueueConsumer;
+
+    private Integer lastTid = 0;
 
     @Autowired
     private BitsoApiIntegration bitsoApiIntegration;
@@ -145,11 +150,25 @@ public class DashboardController implements Initializable {
     }
 
     public void reloadTrades() {
-        final TradeResponseDTO tradeResponse = bitsoApiIntegration.getTrade(book, null);
+        TradeResponseDTO tradeResponse;
+
+        if (lastTid == 0) {
+            tradeResponse = bitsoApiIntegration.getTrade(book, null, null, 100);
+        } else {
+            tradeResponse = bitsoApiIntegration.getTrade(book, lastTid, "asc", 100);
+        }
+
+        if (obsTrades == null) {
+            obsTrades = FXCollections.observableArrayList(TradeDTOConverter.convert(tradeResponse.getPayload()));
+        } else {
+            obsTrades.addAll(TradeDTOConverter.convert(tradeResponse.getPayload()));
+        }
 
         // Created the observable list, filters and sets to the Trades TableView
-        obsTrades = FXCollections.observableArrayList(TradeDTOConverter.convert(tradeResponse.getPayload()));
-        filteredTrades = obsTrades.filtered(p -> obsTrades.indexOf(p) < xInteger.get());
+        sortedTrades = obsTrades.sorted((t1, t2) -> t2.getTid().compareTo(t1.getTid()));
+        filteredTrades = sortedTrades.filtered(p -> sortedTrades.indexOf(p) < xInteger.get());
         tradesTableView.setItems(filteredTrades);
+
+        lastTid = sortedTrades.get(0).getTid();
     }
 }

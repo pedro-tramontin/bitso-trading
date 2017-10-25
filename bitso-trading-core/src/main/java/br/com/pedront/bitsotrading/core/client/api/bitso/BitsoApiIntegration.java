@@ -23,9 +23,11 @@ public interface BitsoApiIntegration {
 
     @RequestMapping(value = "/v3/order_book/", method = RequestMethod.GET)
     OrderResponseDTO getOrder(@RequestParam("book") String book,
-            @RequestParam(value = "aggregate", required = false, defaultValue = "true") String aggregate);
+                              @RequestParam(value = "aggregate", required = false, defaultValue = "true") String aggregate);
 
     @RequestMapping(value = "/v3/trades/", method = RequestMethod.GET)
     TradeResponseDTO getTrade(@RequestParam("book") String book,
-            @RequestParam(value = "marker", required = false) String marker);
+                              @RequestParam(value = "marker", required = false) Integer marker,
+                              @RequestParam(value = "sort", required = false, defaultValue = "desc") String sort,
+                              @RequestParam(value = "limit", required = false, defaultValue = "25") Integer limit);
 }

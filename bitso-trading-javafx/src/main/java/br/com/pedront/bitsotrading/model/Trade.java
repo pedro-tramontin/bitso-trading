@@ -1,5 +1,7 @@
 package br.com.pedront.bitsotrading.model;
 
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 /**
@@ -11,75 +13,90 @@ import javafx.beans.property.SimpleStringProperty;
 public class Trade {
     private final SimpleStringProperty createdAt = new SimpleStringProperty("");
     private final SimpleStringProperty makerSide = new SimpleStringProperty("");
-    private final SimpleStringProperty amount = new SimpleStringProperty("");
-    private final SimpleStringProperty price = new SimpleStringProperty("");
+    private final SimpleDoubleProperty amount = new SimpleDoubleProperty(0.0);
+    private final SimpleDoubleProperty price = new SimpleDoubleProperty(0.0);
+    private final SimpleIntegerProperty tid = new SimpleIntegerProperty(0);
 
     public Trade() {
-        this("", "", "", "");
+        this("", "", 0.0, 0.0, 0);
     }
 
-    public Trade(String createdAt, String makerSide, String amount, String price) {
+    public Trade(String createdAt, String makerSide, Double amount, Double price, Integer tid) {
         setCreatedAt(createdAt);
         setMakerSide(makerSide);
         setAmount(amount);
         setPrice(price);
+        setTid(tid);
+    }
+
+    public String getCreatedAt() {
+        return createdAt.get();
     }
 
     public SimpleStringProperty createdAtProperty() {
         return createdAt;
     }
 
+    public void setCreatedAt(String createdAt) {
+        this.createdAt.set(createdAt);
+    }
+
+    public String getMakerSide() {
+        return makerSide.get();
+    }
+
     public SimpleStringProperty makerSideProperty() {
         return makerSide;
     }
 
-    public SimpleStringProperty amountProperty() {
+    public void setMakerSide(String makerSide) {
+        this.makerSide.set(makerSide);
+    }
+
+    public double getAmount() {
+        return amount.get();
+    }
+
+    public SimpleDoubleProperty amountProperty() {
         return amount;
     }
 
-    public SimpleStringProperty priceProperty() {
+    public void setAmount(double amount) {
+        this.amount.set(amount);
+    }
+
+    public double getPrice() {
+        return price.get();
+    }
+
+    public SimpleDoubleProperty priceProperty() {
         return price;
     }
 
-    public String getCreatedAt() {
-        return createdAtProperty().get();
+    public void setPrice(double price) {
+        this.price.set(price);
     }
 
-    public void setCreatedAt(final String createdAt) {
-        createdAtProperty().set(createdAt);
+    public Integer getTid() {
+        return tid.get();
     }
 
-    public String getMakerSide() {
-        return makerSideProperty().get();
+    public SimpleIntegerProperty tidProperty() {
+        return tid;
     }
 
-    public void setMakerSide(final String makerSide) {
-        makerSideProperty().set(makerSide);
-    }
-
-    public String getAmount() {
-        return amountProperty().get();
-    }
-
-    public void setAmount(final String amount) {
-        amountProperty().set(amount);
-    }
-
-    public String getPrice() {
-        return priceProperty().get();
-    }
-
-    public void setPrice(final String price) {
-        priceProperty().set(price);
+    public void setTid(Integer tid) {
+        this.tid.set(tid);
     }
 
     @Override
     public String toString() {
         return "Trade{" +
-                "createdAt=" + getCreatedAt() +
-                ", makerSide=" + getMakerSide() +
-                ", amount=" + getAmount() +
-                ", price=" + getPrice() +
+                "createdAt=" + createdAt +
+                ", makerSide=" + makerSide +
+                ", amount=" + String.format("%.8f", amount) +
+                ", price=" + String.format("%.2f", price) +
+                ", tid=" + tid +
                 '}';
     }
 }

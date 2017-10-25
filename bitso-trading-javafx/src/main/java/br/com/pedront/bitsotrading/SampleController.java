@@ -159,7 +159,7 @@ public class SampleController implements Initializable {
     }
 
     private void getTrade(String book) {
-        final TradeResponseDTO tradeResponse = bitsoApiIntegration.getTrade(book, null);
+        final TradeResponseDTO tradeResponse = bitsoApiIntegration.getTrade(book, null, null, null);
 
         StringBuilder strBuilder = new StringBuilder();
         strBuilder

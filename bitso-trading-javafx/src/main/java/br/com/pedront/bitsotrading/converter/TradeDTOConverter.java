@@ -13,7 +13,7 @@ import br.com.pedront.bitsotrading.model.Trade;
 /**
  * @author ptramontin
  * @version $Revision: $<br/>
- *          $Id: $
+ * $Id: $
  * @since 10/20/17 4:37 PM
  */
 public class TradeDTOConverter {
@@ -43,7 +43,7 @@ public class TradeDTOConverter {
 
     private static Trade convert(final TradeDTO tradeDTO) {
         return new Trade(fromISO8601ToRFC1123(tradeDTO.getCreatedAt()), tradeDTO.getMakerSide(), tradeDTO.getAmount(),
-                tradeDTO.getPrice());
+                tradeDTO.getPrice(), tradeDTO.getTid());
     }
 
     public static List<Trade> convert(final List<TradeDTO> tradeDTOs) {

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author ptramontin
  * @version $Revision: $<br/>
- *          $Id: $
+ * $Id: $
  * @since 10/18/17 6:26 PM
  */
 public class TradeDTO {
@@ -15,14 +15,14 @@ public class TradeDTO {
     @JsonProperty("created_at")
     private String createdAt;
 
-    private String amount;
+    private Double amount;
 
     @JsonProperty("maker_side")
     private String makerSide;
 
-    private String price;
+    private Double price;
 
-    private String tid;
+    private Integer tid;
 
     public String getBook() {
         return book;
@@ -40,11 +40,11 @@ public class TradeDTO {
         this.createdAt = createdAt;
     }
 
-    public String getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(final String amount) {
+    public void setAmount(final Double amount) {
         this.amount = amount;
     }
 
@@ -56,19 +56,19 @@ public class TradeDTO {
         this.makerSide = makerSide;
     }
 
-    public String getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(final String price) {
+    public void setPrice(final Double price) {
         this.price = price;
     }
 
-    public String getTid() {
+    public Integer getTid() {
         return tid;
     }
 
-    public void setTid(final String tid) {
+    public void setTid(final Integer tid) {
         this.tid = tid;
     }
 
@@ -81,11 +81,11 @@ public class TradeDTO {
                 .append(",createdAt=\"")//
                 .append(createdAt).append("\"")//
                 .append(",amount=\"")//
-                .append(amount).append("\"")//
+                .append(String.format("%.8f", amount)).append("\"")//
                 .append(",makerSide=\"")//
                 .append(makerSide).append("\"")//
                 .append(",price=\"")//
-                .append(price).append("\"")//
+                .append(String.format("%.2f", price)).append("\"")//
                 .append(",tid=\"")//
                 .append(tid).append("\"")//
                 .append("]");

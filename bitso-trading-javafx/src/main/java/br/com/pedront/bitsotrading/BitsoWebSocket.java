@@ -37,9 +37,9 @@ public class BitsoWebSocket {
     private DashboardController dashboardController;
 
     public BitsoWebSocket(final Runnable orderQueueConsumer,
-            final ObservableList<OrderDTO> obsAsks,
-            final ObservableList<OrderDTO> obsBids,
-            final DashboardController dashboardController) {
+                          final ObservableList<OrderDTO> obsAsks,
+                          final ObservableList<OrderDTO> obsBids,
+                          final DashboardController dashboardController) {
         this.orderQueueConsumer = orderQueueConsumer;
         this.obsAsks = FXCollections.synchronizedObservableList(obsAsks);
         this.obsBids = FXCollections.synchronizedObservableList(obsBids);
@@ -90,50 +90,59 @@ public class BitsoWebSocket {
 
                                         ObservableList<OrderDTO> orderList = getOrderList(makerSide);
 
+                                        OrderDTO foundOrder = null;
+
+                                        String orderId = payload.getOid();
+                                        if (orderId != null) {
+                                            while (foundOrder == null) {
+                                                try {
+                                                    foundOrder = orderList
+                                                            .stream()
+                                                            .filter(o -> orderId.equals(o.getOid()))
+                                                            .findFirst()
+                                                            .orElse(OrderDTO.NULL_ORDER_DTO);
+                                                } catch (ConcurrentModificationException e) {
+                                                    System.out.println(
+                                                            "The list is beaing modified! Trying again...");
+                                                    Thread.sleep(100);
+                                                }
+                                            }
+                                        }
+
                                         if (orderList != null) {
                                             if ("cancelled".equals(payload.getStatus())
                                                     || "completed".equals(payload.getStatus())) {
-                                                String orderId = payload.getOid();
-
-                                                OrderDTO foundOrder = null;
-                                                while (foundOrder == null) {
-                                                    try {
-                                                        foundOrder = orderList
-                                                                .stream()
-                                                                .filter(o -> orderId.equals(o.getOid()))
-                                                                .findFirst()
-                                                                .orElse(OrderDTO.NULL_ORDER_DTO);
-                                                    } catch (ConcurrentModificationException e) {
-                                                        System.out.println(
-                                                                "The list is beaing modified! Trying again...");
-                                                        Thread.sleep(100);
-                                                    }
-                                                }
 
                                                 if (foundOrder != OrderDTO.NULL_ORDER_DTO) {
                                                     final OrderDTO removeOrderDTO = foundOrder;
 
-                                                    // Platform.runLater(() -> orderList.remove(removeOrderDTO));
                                                     mainViewUpdate.addRunnable(() -> orderList.remove(removeOrderDTO));
 
-                                                    if ("completed".equals(payload.getStatus())) {
-                                                        System.out.println("Reloading trades!");
-                                                        // Platform.(() -> dashboardController.reloadTrades());
-                                                        mainViewUpdate.setReloadTrades(true);
-                                                    }
                                                 } else {
 
                                                     // TODO Try to understand what happened
                                                     System.out.println("No order found");
                                                 }
+
+                                                if ("completed".equals(payload.getStatus())) {
+                                                    System.out.println("Reloading trades!");
+                                                    mainViewUpdate.setReloadTrades(true);
+                                                }
                                             } else if ("open".equals(payload.getStatus())) {
+
+                                                // The order must have changed the amount
+                                                if (foundOrder != OrderDTO.NULL_ORDER_DTO) {
+                                                    final OrderDTO removeOrderDTO = foundOrder;
+
+                                                    mainViewUpdate.addRunnable(() -> orderList.remove(removeOrderDTO));
+                                                }
+
                                                 OrderDTO order = new OrderDTO(diffOrder.getBook(), payload.getRate(),
                                                         payload.getAmount(), payload.getOid());
                                                 System.out.println(
                                                         "Processing new " + payload.getMakerSide() + " message " + order
                                                                 .toString());
 
-                                                // Platform.(() -> orderList.add(order));
                                                 mainViewUpdate.addRunnable(() -> orderList.add(order));
                                             } else {
                                                 // TODO Can't treat this DiffOrder

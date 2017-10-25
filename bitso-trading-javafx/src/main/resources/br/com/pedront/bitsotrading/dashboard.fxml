@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import br.com.pedront.bitsotrading.FormattedDoubleTableCell?>
 <BorderPane xmlns="http://javafx.com/javafx/8.0.121"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.pedront.bitsotrading.DashboardController">
     <center>
@@ -53,11 +54,17 @@
                                 <cellValueFactory>
                                     <PropertyValueFactory property="amount"/>
                                 </cellValueFactory>
+                                <cellFactory>
+                                    <FormattedDoubleTableCell pattern="\%.8f"/>
+                                </cellFactory>
                             </TableColumn>
                             <TableColumn text="Price">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="price"/>
                                 </cellValueFactory>
+                                <cellFactory>
+                                    <FormattedDoubleTableCell pattern="\%.2f"/>
+                                </cellFactory>
                             </TableColumn>
                         </columns>
                     </TableView>
