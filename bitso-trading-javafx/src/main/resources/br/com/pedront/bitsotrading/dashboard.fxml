@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.URL?>
 <?import br.com.pedront.bitsotrading.FormattedDoubleTableCell?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -13,7 +13,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import java.net.URL?>
 <BorderPane xmlns="http://javafx.com/javafx/8.0.121"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="br.com.pedront.bitsotrading.DashboardController">
@@ -25,13 +24,51 @@
                 <HBox styleClass="box-spacing" VBox.vgrow="ALWAYS">
                     <VBox HBox.hgrow="ALWAYS">
                         <Label text="BEST BIDS" style="-fx-font-weight: bold;"/>
-                        <ListView fx:id="bestBidsListView" layoutX="14.0" layoutY="59.0" prefHeight="200.0"
-                                  prefWidth="300.0" minHeight="200.0" minWidth="300.0" VBox.vgrow="ALWAYS"/>
+                        <TableView fx:id="bestBidsTableView" layoutX="14.0" layoutY="59.0" prefHeight="200.0"
+                                   prefWidth="300.0" minHeight="200.0" minWidth="300.0" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn text="Amount">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="amount"/>
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <FormattedDoubleTableCell pattern="\%.8f"/>
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn text="Price">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="price"/>
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <FormattedDoubleTableCell pattern="\%.2f"/>
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
                     </VBox>
                     <VBox HBox.hgrow="ALWAYS">
                         <Label text="BEST ASKS" style="-fx-font-weight: bold;"/>
-                        <ListView fx:id="bestAsksListView" layoutX="326.0" layoutY="59.0" prefHeight="200.0"
-                                  prefWidth="300.0" minHeight="200.0" minWidth="300.0" VBox.vgrow="ALWAYS"/>
+                        <TableView fx:id="bestAsksTableView" layoutX="326.0" layoutY="59.0" prefHeight="200.0"
+                                   prefWidth="300.0" minHeight="200.0" minWidth="300.0" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn text="Amount">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="amount"/>
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <FormattedDoubleTableCell pattern="\%.8f"/>
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn text="Price">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="price"/>
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <FormattedDoubleTableCell pattern="\%.2f"/>
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
                     </VBox>
                 </HBox>
                 <VBox VBox.vgrow="ALWAYS">

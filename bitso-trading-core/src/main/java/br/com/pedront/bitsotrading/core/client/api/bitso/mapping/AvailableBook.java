@@ -1,32 +1,36 @@
-package br.com.pedront.bitsotrading.core.client.api.bitso.dto;
+package br.com.pedront.bitsotrading.core.client.api.bitso.mapping;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author ptramontin
- * @version $Revision: $<br/>
- *          $Id: $
- * @since 10/17/17 5:18 PM
+ * Payload from the Bitso public API endpoint: /available_books<br/>
  */
-public class BookDTO {
+public class AvailableBook {
 
+    /** Order book symbol */
     private String book;
 
+    /** Minimum amount of Bitcoin when placing orders */
     @JsonProperty("minimum_amount")
     private String minimumAmount;
 
+    /** Maximum amount of Bitcoin when placing orders */
     @JsonProperty("maximum_amount")
     private String maximumAmount;
 
+    /** Minimum price (MXN) when placing orders */
     @JsonProperty("minimum_price")
     private String minimumPrice;
 
+    /** Maximum price (MXN) when placing orders */
     @JsonProperty("maximum_price")
     private String maximumPrice;
 
+    /** Minimum value amount (amount*price [MXN]) when placing orders */
     @JsonProperty("minimum_value")
     private String minimumValue;
 
+    /** Maximum value amount (amount*price [MXN]) when placing orders */
     @JsonProperty("maximum_value")
     private String maximumValue;
 
@@ -89,7 +93,7 @@ public class BookDTO {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("Book [")//
+                .append("AvailableBook [")//
                 .append("book=\"")//
                 .append(book).append("\"")//
                 .append(",minimumAmount=\"")//

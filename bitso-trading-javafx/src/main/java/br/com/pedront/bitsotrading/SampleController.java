@@ -9,15 +9,15 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import br.com.pedront.bitsotrading.core.client.api.bitso.BitsoApiIntegration;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.AvailableBooksResponseDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.BookDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrdersDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderResponseDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TickerDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TickerResponseDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TradeDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TradeResponseDTO;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.AvailableBooksResponse;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.AvailableBook;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBook;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBookResponse;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Ticker;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TickerResponse;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradesResponse;
 import de.felixroske.jfxsupport.FXMLController;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -53,7 +53,7 @@ public class SampleController implements Initializable {
 
     @FXML
     private void setHelloText(final Event event) {
-        final String textToBeShown = bitsoApiIntegration.getAvailableBooks().toString();
+        final String textToBeShown = bitsoApiIntegration.avaiableBooks().toString();
         helloLabel.setText(textToBeShown);
     }
 
@@ -71,14 +71,14 @@ public class SampleController implements Initializable {
     }
 
     private void getAvailableBooks() {
-        final AvailableBooksResponseDTO availableBooks = bitsoApiIntegration.getAvailableBooks();
+        final AvailableBooksResponse availableBooks = bitsoApiIntegration.avaiableBooks();
 
         StringBuilder strBuilder = new StringBuilder();
         strBuilder
                 .append(String.format("success: %s\n", availableBooks.getSuccess()));
 
-        final List<BookDTO> books = availableBooks.getPayload();
-        for (BookDTO book : books) {
+        final List<AvailableBook> books = availableBooks.getPayload();
+        for (AvailableBook book : books) {
             strBuilder
                     .append("----------\n")
                     .append(String.format("Book: %s\n", book.getBook()))
@@ -97,14 +97,14 @@ public class SampleController implements Initializable {
     }
 
     private void getTicker(String book) {
-        final TickerResponseDTO tickerResponse = bitsoApiIntegration.getTicker(book);
+        final TickerResponse tickerResponse = bitsoApiIntegration.ticker(book);
 
         StringBuilder strBuilder = new StringBuilder();
         strBuilder
                 .append(String.format("success: %s\n", tickerResponse.getSuccess()));
 
-        final List<TickerDTO> tickers = tickerResponse.getPayload();
-        for (TickerDTO ticker : tickers) {
+        final List<Ticker> tickers = tickerResponse.getPayload();
+        for (Ticker ticker : tickers) {
             strBuilder
                     .append("----------\n")
                     .append(String.format("Book: %s\n", ticker.getBook()))
@@ -122,20 +122,20 @@ public class SampleController implements Initializable {
     }
 
     private void getOrder(String book) {
-        final OrderResponseDTO orderResponse = bitsoApiIntegration.getOrder(book, "false");
+        final OrderBookResponse orderResponse = bitsoApiIntegration.orderBook(book, "false");
 
         StringBuilder strBuilder = new StringBuilder();
         strBuilder
                 .append(String.format("success: %s\n", orderResponse.getSuccess()));
 
-        final OrdersDTO orderPayload = orderResponse.getPayload();
+        final OrderBook orderPayload = orderResponse.getPayload();
         strBuilder
                 .append("----------\n")
                 .append(String.format("Updated At: %s\n", orderPayload.getUpdatedAt()))
                 .append(String.format("Sequence: %s\n", orderPayload.getSequence()))
                 .append("Asks\n");
 
-        for (OrderDTO ask : orderPayload.getAsks()) {
+        for (Order ask : orderPayload.getAsks()) {
             strBuilder
                     .append(String.format("  Book: %s\n", ask.getBook()))
                     .append(String.format("  Price: %s\n", ask.getPrice()))
@@ -146,7 +146,7 @@ public class SampleController implements Initializable {
 
         strBuilder.append("Bids\n");
 
-        for (OrderDTO bid : orderPayload.getBids()) {
+        for (Order bid : orderPayload.getBids()) {
             strBuilder
                     .append(String.format("  Book: %s\n", bid.getBook()))
                     .append(String.format("  Price: %s\n", bid.getPrice()))
@@ -159,14 +159,14 @@ public class SampleController implements Initializable {
     }
 
     private void getTrade(String book) {
-        final TradeResponseDTO tradeResponse = bitsoApiIntegration.getTrade(book, null, null, null);
+        final TradesResponse tradesResponse = bitsoApiIntegration.trades(book, null, null, null);
 
         StringBuilder strBuilder = new StringBuilder();
         strBuilder
-                .append(String.format("success: %s\n", tradeResponse.getSuccess()));
+                .append(String.format("success: %s\n", tradesResponse.getSuccess()));
 
-        final List<TradeDTO> trades = tradeResponse.getPayload();
-        for (TradeDTO trade : trades) {
+        final List<Trade> trades = tradesResponse.getPayload();
+        for (Trade trade : trades) {
             strBuilder
                     .append("----------\n")
                     .append(String.format("Book: %s\n", trade.getBook()))

@@ -1,13 +1,15 @@
 package br.com.pedront.bitsotrading.core.service;
 
-import br.com.pedront.bitsotrading.core.client.api.bitso.BitsoApiIntegration;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderResponseDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrdersDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TradeDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TradeResponseDTO;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import br.com.pedront.bitsotrading.core.client.api.bitso.BitsoApiIntegration;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBook;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBookResponse;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradesResponse;
 
 @Service
 public class BitsoService {
@@ -17,23 +19,23 @@ public class BitsoService {
     @Autowired
     private BitsoApiIntegration bitsoApiIntegration;
 
-    public OrdersDTO fetchOrders(String book) {
-        OrderResponseDTO responseDTO = bitsoApiIntegration
-            .getOrder(book, AGGREGATE_ORDERS_DEFAULT.toString());
+    public OrderBook fetchOrders(String book) {
+        OrderBookResponse orderBookResponse = bitsoApiIntegration
+                .orderBook(book, AGGREGATE_ORDERS_DEFAULT.toString());
 
-        return responseDTO.getPayload();
+        return orderBookResponse.getPayload();
     }
 
-    public List<TradeDTO> fetchTradesAsc(String book, Integer lastOID, Integer limit) {
-        TradeResponseDTO responseDTO = bitsoApiIntegration.getTrade(book, lastOID, "asc", limit);
+    public List<Trade> fetchTradesAsc(String book, Integer lastOID, Integer limit) {
+        TradesResponse tradesResponse = bitsoApiIntegration.trades(book, lastOID, "asc", limit);
 
-        return responseDTO.getPayload();
+        return tradesResponse.getPayload();
     }
 
-    public List<TradeDTO> fetchTradesDesc(String book, Integer limit) {
-        TradeResponseDTO responseDTO = bitsoApiIntegration.getTrade(book, null, "desc", limit);
+    public List<Trade> fetchTradesDesc(String book, Integer limit) {
+        TradesResponse tradesResponse = bitsoApiIntegration.trades(book, null, "desc", limit);
 
-        return responseDTO.getPayload();
+        return tradesResponse.getPayload();
     }
 
 }

@@ -1,39 +1,40 @@
-package br.com.pedront.bitsotrading.core.client.api.bitso.dto;
+package br.com.pedront.bitsotrading.core.client.api.bitso.mapping;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author ptramontin
- * @version $Revision: $<br/>
- *          $Id: $
- * @since 10/18/17 6:14 PM
+ * Payload from the Bitso public API endpoint: /order_book<br/>
  */
-public class OrdersDTO {
+public class OrderBook {
 
-    private List<OrderDTO> asks;
+    /** List of open asks */
+    private List<Order> asks;
 
-    private List<OrderDTO> bids;
+    /** List of open bids */
+    private List<Order> bids;
 
+    /** Timestamp at which the order was last updated */
     @JsonProperty("updated_at")
     private String updatedAt;
 
+    /** Increasing integer value for each order book update. */
     private String sequence;
 
-    public List<OrderDTO> getAsks() {
+    public List<Order> getAsks() {
         return asks;
     }
 
-    public void setAsks(final List<OrderDTO> asks) {
+    public void setAsks(final List<Order> asks) {
         this.asks = asks;
     }
 
-    public List<OrderDTO> getBids() {
+    public List<Order> getBids() {
         return bids;
     }
 
-    public void setBids(final List<OrderDTO> bids) {
+    public void setBids(final List<Order> bids) {
         this.bids = bids;
     }
 
@@ -56,7 +57,7 @@ public class OrdersDTO {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("OrdersDTO [")//
+                .append("OrderBook [")//
                 .append("asks=")//
                 .append(asks)//
                 .append(",bids=")//

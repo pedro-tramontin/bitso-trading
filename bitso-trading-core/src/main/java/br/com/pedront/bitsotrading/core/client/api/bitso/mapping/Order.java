@@ -1,27 +1,26 @@
-package br.com.pedront.bitsotrading.core.client.api.bitso.dto;
+package br.com.pedront.bitsotrading.core.client.api.bitso.mapping;
 
 /**
- * @author ptramontin
- * @version $Revision: $<br/>
- *          $Id: $
- * @since 10/18/17 6:12 PM
+ * Order payload from the Bitso public API endpoint: /order_book<br/>
  */
-public class OrderDTO {
+public class Order {
 
-    public static final OrderDTO NULL_ORDER_DTO = new OrderDTO();
-
+    /** Order book symbol */
     private String book;
 
+    /** Price per unit of major */
     private Double price;
 
+    /** Major amount in order */
     private Double amount;
 
+    /** Order ID */
     private String oid;
 
-    public OrderDTO() {
+    public Order() {
     }
 
-    public OrderDTO(String book, Double price, Double amount, String oid) {
+    public Order(String book, Double price, Double amount, String oid) {
         this.book = book;
         this.price = price;
         this.amount = amount;
@@ -63,13 +62,13 @@ public class OrderDTO {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("OrderDTO [")//
+                .append("Order [")//
                 .append("book=\"")//
                 .append(book).append("\"")//
-                .append(",price=\"")//
-                .append(String.format("%.2f", price)).append("\"")//
-                .append(",amount=\"")//
-                .append(String.format("%.8f", amount)).append("\"")//
+                .append(",price=")//
+                .append(price)//
+                .append(",amount=")//
+                .append(amount)//
                 .append(",oid=\"")//
                 .append(oid).append("\"")//
                 .append("]");

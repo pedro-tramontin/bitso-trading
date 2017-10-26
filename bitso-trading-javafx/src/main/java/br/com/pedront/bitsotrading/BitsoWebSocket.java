@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +19,7 @@ import javax.websocket.Session;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderDTO;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,15 +31,15 @@ public class BitsoWebSocket {
 
     private final BlockingQueue<DiffOrder> ordersQueue = new LinkedBlockingQueue<>();
 
-    private ObservableList<OrderDTO> obsAsks;
+    private ObservableList<Order> obsAsks;
 
-    private ObservableList<OrderDTO> obsBids;
+    private ObservableList<Order> obsBids;
 
     private DashboardController dashboardController;
 
     public BitsoWebSocket(final Runnable orderQueueConsumer,
-            final ObservableList<OrderDTO> obsAsks,
-            final ObservableList<OrderDTO> obsBids,
+            final ObservableList<Order> obsAsks,
+            final ObservableList<Order> obsBids,
             final DashboardController dashboardController) {
         this.orderQueueConsumer = orderQueueConsumer;
         this.obsAsks = FXCollections.synchronizedObservableList(obsAsks);
@@ -88,9 +89,9 @@ public class BitsoWebSocket {
                                     for (DiffOrderPayload payload : diffOrderPayload) {
                                         int makerSide = payload.getMakerSide();
 
-                                        ObservableList<OrderDTO> orderList = getOrderList(makerSide);
+                                        ObservableList<Order> orderList = getOrderList(makerSide);
 
-                                        OrderDTO foundOrder = null;
+                                        Optional<Order> foundOrder = null;
 
                                         String orderId = payload.getOid();
                                         if (orderId != null) {
@@ -99,8 +100,7 @@ public class BitsoWebSocket {
                                                     foundOrder = orderList
                                                             .stream()
                                                             .filter(o -> orderId.equals(o.getOid()))
-                                                            .findFirst()
-                                                            .orElse(OrderDTO.NULL_ORDER_DTO);
+                                                            .findFirst();
                                                 } catch (ConcurrentModificationException e) {
                                                     System.out.println(
                                                             "The list is beaing modified! Trying again...");
@@ -113,11 +113,11 @@ public class BitsoWebSocket {
                                             if ("cancelled".equals(payload.getStatus())
                                                     || "completed".equals(payload.getStatus())) {
 
-                                                if (foundOrder != OrderDTO.NULL_ORDER_DTO) {
-                                                    final OrderDTO removeOrderDTO = foundOrder;
+                                                if (foundOrder.isPresent()) {
+                                                    final Order removeOrder = foundOrder.get();
 
                                                     mainViewUpdate.addRunnable(() -> dashboardController
-                                                            .removeOrder(makerSide, removeOrderDTO));
+                                                            .removeOrder(makerSide, removeOrder));
 
                                                 } else {
 
@@ -131,14 +131,14 @@ public class BitsoWebSocket {
                                             } else if ("open".equals(payload.getStatus())) {
 
                                                 // The order must have changed the amount
-                                                if (foundOrder != OrderDTO.NULL_ORDER_DTO) {
-                                                    final OrderDTO removeOrderDTO = foundOrder;
+                                                if (foundOrder.isPresent()) {
+                                                    final Order removeOrder = foundOrder.get();
 
                                                     mainViewUpdate.addRunnable(() -> dashboardController
-                                                            .removeOrder(makerSide, removeOrderDTO));
+                                                            .removeOrder(makerSide, removeOrder));
                                                 }
 
-                                                OrderDTO order = new OrderDTO(diffOrder.getBook(), payload.getRate(),
+                                                Order order = new Order(diffOrder.getBook(), payload.getRate(),
                                                         payload.getAmount(), payload.getOid());
                                                 System.out.println(
                                                         "Processing new " + payload.getMakerSide() + " message " + order
@@ -194,7 +194,7 @@ public class BitsoWebSocket {
         }
     }
 
-    private ObservableList<OrderDTO> getOrderList(final Integer makerSide) {
+    private ObservableList<Order> getOrderList(final Integer makerSide) {
         if (makerSide == 0) {
             return obsBids;
         } else if (makerSide == 1) {

@@ -1,27 +1,30 @@
-package br.com.pedront.bitsotrading.core.client.api.bitso.dto;
+package br.com.pedront.bitsotrading.core.client.api.bitso.mapping;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author ptramontin
- * @version $Revision: $<br/>
- * $Id: $
- * @since 10/18/17 6:26 PM
+ * Payload from the Bitso public API endpoint: /trades<br/>
  */
-public class TradeDTO {
+public class Trade {
 
+    /** Order book symbol */
     private String book;
 
+    /** Timestamp at which the trade was executed */
     @JsonProperty("created_at")
     private String createdAt;
 
+    /** Major amount transacted */
     private Double amount;
 
+    /** Indicates the maker order side (maker order is the order that was open on the order book) */
     @JsonProperty("maker_side")
     private String makerSide;
 
+    /** Price per unit of Bitcoin */
     private Double price;
 
+    /** Trade ID */
     private Integer tid;
 
     public String getBook() {
@@ -75,19 +78,19 @@ public class TradeDTO {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("TradeDTO [")//
+                .append("Trade [")//
                 .append("book=\"")//
                 .append(book).append("\"")//
                 .append(",createdAt=\"")//
                 .append(createdAt).append("\"")//
-                .append(",amount=\"")//
-                .append(String.format("%.8f", amount)).append("\"")//
+                .append(",amount=")//
+                .append(amount)//
                 .append(",makerSide=\"")//
                 .append(makerSide).append("\"")//
-                .append(",price=\"")//
-                .append(String.format("%.2f", price)).append("\"")//
-                .append(",tid=\"")//
-                .append(tid).append("\"")//
+                .append(",price=")//
+                .append(price)//
+                .append(",tid=")//
+                .append(tid)//
                 .append("]");
         return builder.toString();
     }

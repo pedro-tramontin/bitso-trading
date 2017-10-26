@@ -5,12 +5,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
-/**
- * @author ptramontin
- * @version $Revision: $<br/>
- *          $Id: $
- * @since 10/20/17 4:31 PM
- */
 public class Trade {
     private final SimpleStringProperty createdAt = new SimpleStringProperty("");
     private final SimpleStringProperty makerSide = new SimpleStringProperty("");
@@ -39,6 +33,15 @@ public class Trade {
         setPrice(price);
         setTid(tid);
         setSimulated(simulated);
+    }
+
+    public Trade(Trade trade, String makerSide, Double amount) {
+        setCreatedAt(trade.getCreatedAt());
+        setMakerSide(makerSide);
+        setAmount(amount);
+        setPrice(trade.getPrice());
+        setTid(trade.getTid());
+        setSimulated(true);
     }
 
     public String getCreatedAt() {
@@ -126,9 +129,9 @@ public class Trade {
                 .append(",makerSide=")//
                 .append(makerSide)//
                 .append(",amount=")//
-                .append(String.format("%.8f", amount.get()))//
+                .append(amount)//
                 .append(",price=")//
-                .append(String.format("%.2f", price.get()))//
+                .append(price)//
                 .append(",tid=")//
                 .append(tid)//
                 .append(",simulated=")//

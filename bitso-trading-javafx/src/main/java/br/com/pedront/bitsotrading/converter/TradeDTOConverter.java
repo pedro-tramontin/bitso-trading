@@ -7,8 +7,7 @@ import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TradeDTO;
-import br.com.pedront.bitsotrading.model.Trade;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade;
 
 /**
  * @author ptramontin
@@ -41,13 +40,14 @@ public class TradeDTOConverter {
         return localFormatter.format(OffsetDateTime.parse(iso8601Timestamp, utcFormatter));
     }
 
-    private static Trade convert(final TradeDTO tradeDTO) {
-        return new Trade(fromISO8601ToRFC1123(tradeDTO.getCreatedAt()), tradeDTO.getMakerSide(), tradeDTO.getAmount(),
-                tradeDTO.getPrice(), tradeDTO.getTid());
+    private static br.com.pedront.bitsotrading.model.Trade convert(final Trade trade) {
+        return new br.com.pedront.bitsotrading.model.Trade(fromISO8601ToRFC1123(trade.getCreatedAt()), trade.getMakerSide(), trade
+                .getAmount(),
+                trade.getPrice(), trade.getTid());
     }
 
-    public static List<Trade> convert(final List<TradeDTO> tradeDTOs) {
-        return tradeDTOs.stream().map(TradeDTOConverter::convert).collect(Collectors.toList());
+    public static List<br.com.pedront.bitsotrading.model.Trade> convert(final List<Trade> trades) {
+        return trades.stream().map(TradeDTOConverter::convert).collect(Collectors.toList());
     }
 
 }

@@ -1,31 +1,37 @@
-package br.com.pedront.bitsotrading.core.client.api.bitso.dto;
+package br.com.pedront.bitsotrading.core.client.api.bitso.mapping;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author ptramontin
- * @version $Revision: $<br/>
- *          $Id: $
- * @since 10/18/17 5:41 PM
+ * Payload from the Bitso public API endpoint: /ticker<br/>
  */
-public class TickerDTO {
+public class Ticker {
 
+    /** Order book symbol */
     private String book;
 
+    /** Last 24 hours volume */
     private String volume;
 
+    /** Last 24 hours price high */
     private String high;
 
+    /** Last traded price */
     private String last;
 
+    /** Last 24 hours price low */
     private String low;
 
+    /** Last 24 hours volume weighted average price: VWAP */
     private String vwap;
 
+    /** Lowest sell order */
     private String ask;
 
+    /** Highest buy order */
     private String bid;
 
+    /** Timestamp at which the ticker was generated */
     @JsonProperty("created_at")
     private String createdAt;
 
@@ -104,7 +110,7 @@ public class TickerDTO {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("TickerDTO [")//
+                .append("Ticker [")//
                 .append("book=\"")//
                 .append(book).append("\"")//
                 .append(",volume=\"")//
