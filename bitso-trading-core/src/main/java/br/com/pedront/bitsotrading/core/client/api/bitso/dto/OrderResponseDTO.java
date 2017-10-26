@@ -1,9 +1,5 @@
 package br.com.pedront.bitsotrading.core.client.api.bitso.dto;
 
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 /**
  * @author ptramontin
  * @version $Revision: $<br/>
@@ -14,7 +10,7 @@ public class OrderResponseDTO {
 
     private String success;
 
-    private OrderPayloadDTO payload;
+    private OrdersDTO payload;
 
     public String getSuccess() {
         return success;
@@ -24,11 +20,11 @@ public class OrderResponseDTO {
         this.success = success;
     }
 
-    public OrderPayloadDTO getPayload() {
+    public OrdersDTO getPayload() {
         return payload;
     }
 
-    public void setPayload(OrderPayloadDTO payload) {
+    public void setPayload(OrdersDTO payload) {
         this.payload = payload;
     }
 

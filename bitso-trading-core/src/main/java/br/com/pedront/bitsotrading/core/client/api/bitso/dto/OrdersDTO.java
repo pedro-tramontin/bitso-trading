@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *          $Id: $
  * @since 10/18/17 6:14 PM
  */
-public class OrderPayloadDTO {
+public class OrdersDTO {
 
     private List<OrderDTO> asks;
 
@@ -56,7 +56,7 @@ public class OrderPayloadDTO {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("OrderPayloadDTO [")//
+                .append("OrdersDTO [")//
                 .append("asks=")//
                 .append(asks)//
                 .append(",bids=")//

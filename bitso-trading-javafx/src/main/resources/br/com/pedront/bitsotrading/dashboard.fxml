@@ -13,17 +13,16 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
 <BorderPane xmlns="http://javafx.com/javafx/8.0.121"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.pedront.bitsotrading.DashboardController">
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.pedront.bitsotrading.DashboardController">
     <center>
-        <AnchorPane>
-            <padding>
-                <Insets bottom="10" left="10" top="10"/>
-            </padding>
-
-            <VBox spacing="10" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="0"
+        <AnchorPane styleClass="parent-pane">
+            <VBox styleClass="box-spacing" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10"
+                  AnchorPane.rightAnchor="0"
                   AnchorPane.topAnchor="10">
-                <HBox spacing="10" VBox.vgrow="ALWAYS">
+                <HBox styleClass="box-spacing" VBox.vgrow="ALWAYS">
                     <VBox HBox.hgrow="ALWAYS">
                         <Label text="BEST BIDS" style="-fx-font-weight: bold;"/>
                         <ListView fx:id="bestBidsListView" layoutX="14.0" layoutY="59.0" prefHeight="200.0"
@@ -92,7 +91,7 @@
 
                 <Label text="CONFIGURATION" style="-fx-font-weight: bold;"/>
 
-                <HBox alignment="CENTER_LEFT" spacing="10">
+                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
                         <Insets top="20"/>
                     </padding>
@@ -107,7 +106,7 @@
                 <Label text="CONTRARIAN TRADING STRATEGY SIMULATION" wrapText="true"
                        style="-fx-padding: 40px 0px 0px 0px;"/>
 
-                <HBox alignment="CENTER_LEFT" spacing="10">
+                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
                         <Insets top="10"/>
                     </padding>
@@ -117,7 +116,7 @@
                            alignment="CENTER"/>
                 </HBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="10">
+                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
                         <Insets top="10"/>
                     </padding>
@@ -128,7 +127,7 @@
 
                 <Label text="THE NUMBER OF UPTICKS" wrapText="true" style="-fx-font-size: 10px;"/>
 
-                <HBox alignment="CENTER_LEFT" spacing="10">
+                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
                         <Insets top="10"/>
                     </padding>
@@ -139,7 +138,7 @@
 
                 <Label text="THE NUMBER OF DOWNTICKS" wrapText="true" style="-fx-font-size: 10px;"/>
 
-                <HBox alignment="CENTER_LEFT" spacing="10">
+                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
                         <Insets top="10"/>
                     </padding>
@@ -149,4 +148,7 @@
             </VBox>
         </AnchorPane>
     </right>
+    <stylesheets>
+        <URL value="@dashboard.css"/>
+    </stylesheets>
 </BorderPane>

@@ -12,7 +12,7 @@ import br.com.pedront.bitsotrading.core.client.api.bitso.BitsoApiIntegration;
 import br.com.pedront.bitsotrading.core.client.api.bitso.dto.AvailableBooksResponseDTO;
 import br.com.pedront.bitsotrading.core.client.api.bitso.dto.BookDTO;
 import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderPayloadDTO;
+import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrdersDTO;
 import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderResponseDTO;
 import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TickerDTO;
 import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TickerResponseDTO;
@@ -128,7 +128,7 @@ public class SampleController implements Initializable {
         strBuilder
                 .append(String.format("success: %s\n", orderResponse.getSuccess()));
 
-        final OrderPayloadDTO orderPayload = orderResponse.getPayload();
+        final OrdersDTO orderPayload = orderResponse.getPayload();
         strBuilder
                 .append("----------\n")
                 .append(String.format("Updated At: %s\n", orderPayload.getUpdatedAt()))

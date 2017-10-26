@@ -1,5 +1,8 @@
 package br.com.pedront.bitsotrading;
 
+import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrdersDTO;
+import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TradeDTO;
+import br.com.pedront.bitsotrading.core.service.BitsoService;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -19,10 +22,7 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import br.com.pedront.bitsotrading.converter.TradeDTOConverter;
-import br.com.pedront.bitsotrading.core.client.api.bitso.BitsoApiIntegration;
 import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.OrderResponseDTO;
-import br.com.pedront.bitsotrading.core.client.api.bitso.dto.TradeResponseDTO;
 import br.com.pedront.bitsotrading.model.Trade;
 import de.felixroske.jfxsupport.FXMLController;
 import javafx.beans.binding.Bindings;
@@ -44,6 +44,14 @@ import javafx.util.converter.NumberStringConverter;
 public class DashboardController implements Initializable {
 
     private static final String book = "btc_mxn";
+
+    private static final Integer X_INITIAL = 5;
+
+    private static final Integer M_INITIAL = 2;
+
+    private static final Integer N_INITIAL = 2;
+
+    public static final int TRADES_FETCH_DEFAULT = 50;
 
     @FXML
     public ListView<OrderDTO> bestBidsListView;
@@ -100,35 +108,42 @@ public class DashboardController implements Initializable {
 
     private List<Trade> simulatorTrades = new ArrayList<>();
 
+//    @Autowired
+//    private BitsoApiIntegration bitsoApiIntegration;
+
     @Autowired
-    private BitsoApiIntegration bitsoApiIntegration;
+    private BitsoService bitsoService;
 
     @Override
     public void initialize(final URL location, final ResourceBundle resources) {
 
         // final TradeResponseDTO tradeResponse = bitsoApiIntegration.getTrade(book, null);
-        final OrderResponseDTO orderResponse = bitsoApiIntegration.getOrder(book, "false");
+        //final OrderResponseDTO orderResponse = bitsoApiIntegration.getOrder(book, "false");
+        OrdersDTO ordersDTO = bitsoService.fetchOrders(book);
 
-        Bindings.bindBidirectional(xTextField.textProperty(), xInteger, new NumberStringConverter());
-        xTextField.textProperty().set("5");
+        Bindings
+            .bindBidirectional(xTextField.textProperty(), xInteger, new NumberStringConverter());
+        xTextField.textProperty().set(X_INITIAL.toString());
 
-        Bindings.bindBidirectional(mTextField.textProperty(), mInteger, new NumberStringConverter());
-        mTextField.textProperty().set("3");
+        Bindings
+            .bindBidirectional(mTextField.textProperty(), mInteger, new NumberStringConverter());
+        mTextField.textProperty().set(M_INITIAL.toString());
 
-        Bindings.bindBidirectional(nTextField.textProperty(), nInteger, new NumberStringConverter());
-        nTextField.textProperty().set("2");
+        Bindings
+            .bindBidirectional(nTextField.textProperty(), nInteger, new NumberStringConverter());
+        nTextField.textProperty().set(N_INITIAL.toString());
 
         // // Created the observable list, filters and sets to the Trades TableView
         reloadTrades();
 
         // Created the observable list, filters and sets to the Asks TableView
-        obsAsks = FXCollections.observableList(orderResponse.getPayload().getAsks());
+        obsAsks = FXCollections.observableList(ordersDTO.getAsks());
         sortedAsks = obsAsks.sorted(Comparator.comparing(OrderDTO::getPrice));
         filteredAsks = sortedAsks.filtered(p -> sortedAsks.indexOf(p) < xInteger.get());
         bestAsksListView.setItems(filteredAsks);
 
         // Created the observable list, filters and sets to the Bids TableView
-        obsBids = FXCollections.observableList(orderResponse.getPayload().getBids());
+        obsBids = FXCollections.observableList(ordersDTO.getBids());
         sortedBids = obsBids.sorted(Comparator.comparing(OrderDTO::getPrice).reversed());
         filteredBids = sortedBids.filtered(p -> sortedBids.indexOf(p) < xInteger.get());
         bestBidsListView.setItems(filteredBids);
@@ -150,7 +165,7 @@ public class DashboardController implements Initializable {
                     // TODO GET MORE TRADES FROM SERVER
                 }
 
-                filteredTrades.setPredicate(p -> obsTrades.indexOf(p) < newValueInteger);
+                filteredTrades.setPredicate(p -> sortedTrades.indexOf(p) < newValueInteger);
                 filteredAsks.setPredicate(p -> sortedAsks.indexOf(p) < newValueInteger);
                 filteredBids.setPredicate(p -> sortedBids.indexOf(p) < newValueInteger);
             } catch (NumberFormatException e) {
@@ -164,8 +179,9 @@ public class DashboardController implements Initializable {
 
                 simulatorLabel.setText("DISABLED");
                 simulatorLabel
-                        .setStyle("-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold; "
-                                + "-fx-border-color: #f5c6cb; -fx-border-width: 1px");
+                    .setStyle(
+                        "-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold; "
+                            + "-fx-border-color: #f5c6cb; -fx-border-width: 1px");
 
                 enableSimulation = false;
             } else {
@@ -176,8 +192,9 @@ public class DashboardController implements Initializable {
 
                 simulatorLabel.setText("ENABLED");
                 simulatorLabel
-                        .setStyle("-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold; "
-                                + "-fx-border-color: #c3e6cb; -fx-border-width: 1px");
+                    .setStyle(
+                        "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold; "
+                            + "-fx-border-color: #c3e6cb; -fx-border-width: 1px");
 
                 enableSimulation = true;
             }
@@ -185,7 +202,8 @@ public class DashboardController implements Initializable {
 
         ClientManager client = ClientManager.createClient();
         try {
-            BitsoWebSocket bitsoWebSocket = new BitsoWebSocket(orderQueueConsumer, obsAsks, obsBids, this);
+            BitsoWebSocket bitsoWebSocket = new BitsoWebSocket(orderQueueConsumer, obsAsks, obsBids,
+                this);
             client.connectToServer(bitsoWebSocket, new URI("wss://ws.bitso.com"));
         } catch (DeploymentException | URISyntaxException | IOException e) {
             throw new RuntimeException(e);
@@ -194,22 +212,29 @@ public class DashboardController implements Initializable {
     }
 
     public void reloadTrades() {
-        TradeResponseDTO tradeResponse;
+        //TradeResponseDTO tradeResponse;
+        List<TradeDTO> tradeDTOList;
 
         if (lastTid == 0) {
-            tradeResponse = bitsoApiIntegration.getTrade(book, null, "desc", 100);
+            tradeDTOList = bitsoService.fetchTradesDesc(book, TRADES_FETCH_DEFAULT);
+
+            //tradeResponse = bitsoApiIntegration.getTrade(book, null, "desc", 100);
         } else {
-            tradeResponse = bitsoApiIntegration.getTrade(book, lastTid, "asc", 100);
+            tradeDTOList = bitsoService.fetchTradesAsc(book, lastTid, TRADES_FETCH_DEFAULT);
+
+            //tradeResponse = bitsoApiIntegration.getTrade(book, lastTid, "asc", 100);
         }
 
         if (obsTrades == null) {
-            obsTrades = FXCollections.observableArrayList(TradeDTOConverter.convert(tradeResponse.getPayload()));
+            obsTrades = FXCollections
+                .observableArrayList(TradeDTOConverter.convert(tradeDTOList));
         } else {
-            final List<Trade> newTrades = TradeDTOConverter.convert(tradeResponse.getPayload());
+            final List<Trade> newTrades = TradeDTOConverter.convert(tradeDTOList);
 
             if (enableSimulation) {
-                final List<Trade> simTrades = newTrades.stream().map(this::simulate).filter(Objects::nonNull)
-                        .collect(Collectors.toList());
+                final List<Trade> simTrades = newTrades.stream().map(this::simulate)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
 
                 newTrades.addAll(simTrades);
             }
@@ -255,10 +280,12 @@ public class DashboardController implements Initializable {
         }
 
         if (simulatorCount == mInteger.get()) {
-            simulated = new Trade(newTrade.getCreatedAt(), "sell", 1.0, newTrade.getPrice(), newTrade.getTid(), true);
+            simulated = new Trade(newTrade.getCreatedAt(), "sell", 1.0, newTrade.getPrice(),
+                newTrade.getTid(), true);
             simulatorCount = 0;
         } else if (simulatorCount == -nInteger.get()) {
-            simulated = new Trade(newTrade.getCreatedAt(), "buy", 1.0, newTrade.getPrice(), newTrade.getTid(), true);
+            simulated = new Trade(newTrade.getCreatedAt(), "buy", 1.0, newTrade.getPrice(),
+                newTrade.getTid(), true);
             simulatorCount = 0;
         }
 

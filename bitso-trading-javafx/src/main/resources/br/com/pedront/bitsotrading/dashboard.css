@@ -1,0 +1,7 @@
+.parent-pane {
+    -fx-padding: 10px 0px 10px 10px;
+}
+
+.box-spacing {
+    -fx-spacing: 50px;
+}
