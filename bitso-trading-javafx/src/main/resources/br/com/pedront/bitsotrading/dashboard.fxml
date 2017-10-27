@@ -6,109 +6,128 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<BorderPane xmlns="http://javafx.com/javafx/8.0.121"
-            xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="br.com.pedront.bitsotrading.DashboardController">
     <center>
         <AnchorPane styleClass="parent-pane">
             <VBox styleClass="box-spacing" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10"
-                  AnchorPane.rightAnchor="0"
-                  AnchorPane.topAnchor="10">
+                  AnchorPane.rightAnchor="0" AnchorPane.topAnchor="10">
                 <HBox styleClass="box-spacing" VBox.vgrow="ALWAYS">
                     <VBox HBox.hgrow="ALWAYS">
-                        <Label text="BEST BIDS" style="-fx-font-weight: bold;"/>
-                        <TableView fx:id="bestBidsTableView" layoutX="14.0" layoutY="59.0" prefHeight="200.0"
-                                   prefWidth="300.0" minHeight="200.0" minWidth="300.0" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn text="Amount">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="amount"/>
-                                    </cellValueFactory>
-                                    <cellFactory>
-                                        <FormattedDoubleTableCell pattern="\%.8f"/>
-                                    </cellFactory>
-                                </TableColumn>
-                                <TableColumn text="Price">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="price"/>
-                                    </cellValueFactory>
-                                    <cellFactory>
-                                        <FormattedDoubleTableCell pattern="\%.2f"/>
-                                    </cellFactory>
-                                </TableColumn>
-                            </columns>
-                        </TableView>
+                        <Label style="-fx-font-weight: bold;" text="BEST BIDS"/>
+                        <StackPane VBox.vgrow="ALWAYS">
+                            <TableView fx:id="bestBidsTableView" layoutX="14.0" layoutY="59.0" minHeight="200.0"
+                                       minWidth="300.0" prefHeight="200.0" prefWidth="300.0">
+                                <columns>
+                                    <TableColumn text="Amount">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="amount"/>
+                                        </cellValueFactory>
+                                        <cellFactory>
+                                            <FormattedDoubleTableCell pattern="\%.8f"/>
+                                        </cellFactory>
+                                    </TableColumn>
+                                    <TableColumn text="Price">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="price"/>
+                                        </cellValueFactory>
+                                        <cellFactory>
+                                            <FormattedDoubleTableCell pattern="\%.2f"/>
+                                        </cellFactory>
+                                    </TableColumn>
+                                </columns>
+                            </TableView>
+                            <HBox style="-fx-background-color: rgba(255, 255, 255, 0.6)" alignment="CENTER"
+                                  fx:id="paneProgressBids">
+                                <ProgressIndicator minHeight="40" maxHeight="40" minWidth="40" maxWidth="40"/>
+                            </HBox>
+                        </StackPane>
                     </VBox>
                     <VBox HBox.hgrow="ALWAYS">
-                        <Label text="BEST ASKS" style="-fx-font-weight: bold;"/>
-                        <TableView fx:id="bestAsksTableView" layoutX="326.0" layoutY="59.0" prefHeight="200.0"
-                                   prefWidth="300.0" minHeight="200.0" minWidth="300.0" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn text="Amount">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="amount"/>
-                                    </cellValueFactory>
-                                    <cellFactory>
-                                        <FormattedDoubleTableCell pattern="\%.8f"/>
-                                    </cellFactory>
-                                </TableColumn>
-                                <TableColumn text="Price">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="price"/>
-                                    </cellValueFactory>
-                                    <cellFactory>
-                                        <FormattedDoubleTableCell pattern="\%.2f"/>
-                                    </cellFactory>
-                                </TableColumn>
-                            </columns>
-                        </TableView>
+                        <Label style="-fx-font-weight: bold;" text="BEST ASKS"/>
+                        <StackPane VBox.vgrow="ALWAYS">
+                            <TableView fx:id="bestAsksTableView" layoutX="326.0" layoutY="59.0" minHeight="200.0"
+                                       minWidth="300.0" prefHeight="200.0" prefWidth="300.0" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn text="Amount">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="amount"/>
+                                        </cellValueFactory>
+                                        <cellFactory>
+                                            <FormattedDoubleTableCell pattern="\%.8f"/>
+                                        </cellFactory>
+                                    </TableColumn>
+                                    <TableColumn text="Price">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="price"/>
+                                        </cellValueFactory>
+                                        <cellFactory>
+                                            <FormattedDoubleTableCell pattern="\%.2f"/>
+                                        </cellFactory>
+                                    </TableColumn>
+                                </columns>
+                            </TableView>
+                            <HBox style="-fx-background-color: rgba(255, 255, 255, 0.6)" alignment="CENTER"
+                                  fx:id="paneProgressAsks">
+                                <ProgressIndicator minHeight="40" maxHeight="40" minWidth="40" maxWidth="40"/>
+                            </HBox>
+                        </StackPane>
                     </VBox>
                 </HBox>
                 <VBox VBox.vgrow="ALWAYS">
-                    <Label text="TRADES" style="-fx-font-weight: bold;"/>
-                    <TableView fx:id="tradesTableView" layoutX="14.0" layoutY="220.0" prefHeight="247.0"
-                               prefWidth="607.0" minHeight="247.0" minWidth="607.0" VBox.vgrow="ALWAYS">
-                        <columns>
-                            <TableColumn text="Created At">
-                                <cellValueFactory>
-                                    <PropertyValueFactory property="createdAt"/>
-                                </cellValueFactory>
-                            </TableColumn>
-                            <TableColumn text="Maker Side">
-                                <cellValueFactory>
-                                    <PropertyValueFactory property="makerSide"/>
-                                </cellValueFactory>
-                            </TableColumn>
-                            <TableColumn text="Amount">
-                                <cellValueFactory>
-                                    <PropertyValueFactory property="amount"/>
-                                </cellValueFactory>
-                                <cellFactory>
-                                    <FormattedDoubleTableCell pattern="\%.8f"/>
-                                </cellFactory>
-                            </TableColumn>
-                            <TableColumn text="Price">
-                                <cellValueFactory>
-                                    <PropertyValueFactory property="price"/>
-                                </cellValueFactory>
-                                <cellFactory>
-                                    <FormattedDoubleTableCell pattern="\%.2f"/>
-                                </cellFactory>
-                            </TableColumn>
-                            <TableColumn text="Simulated">
-                                <cellValueFactory>
-                                    <PropertyValueFactory property="simulated"/>
-                                </cellValueFactory>
-                            </TableColumn>
-                        </columns>
-                    </TableView>
+                    <Label style="-fx-font-weight: bold;" text="TRADES"/>
+                    <StackPane VBox.vgrow="ALWAYS">
+                        <TableView fx:id="tradesTableView" layoutX="14.0" layoutY="220.0" minHeight="247.0"
+                                   minWidth="607.0"
+                                   prefHeight="247.0" prefWidth="607.0" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn text="Created At">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdAt"/>
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn text="Maker Side">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="makerSide"/>
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn text="Amount">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="amount"/>
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <FormattedDoubleTableCell pattern="\%.8f"/>
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn text="Price">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="price"/>
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <FormattedDoubleTableCell pattern="\%.2f"/>
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn text="Simulated">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="simulated"/>
+                                    </cellValueFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                        <HBox style="-fx-background-color: rgba(255, 255, 255, 0.6)" alignment="CENTER"
+                              fx:id="paneProgressTrades">
+                            <ProgressIndicator minHeight="40" maxHeight="40" minWidth="40" maxWidth="40"/>
+                        </HBox>
+                    </StackPane>
                 </VBox>
             </VBox>
         </AnchorPane>
@@ -120,13 +139,14 @@
                 <Insets bottom="10" left="10" right="10" top="10"/>
             </BorderPane.margin>
 
-            <VBox style="-fx-border-color: #cccccc; -fx-border-width: 0px 0px 0px 2px;" AnchorPane.bottomAnchor="10"
-                  AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10" maxWidth="200.0">
+            <VBox maxWidth="200.0" style="-fx-border-color: #cccccc; -fx-border-width: 0px 0px 0px 2px;"
+                  AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10"
+                  AnchorPane.topAnchor="10">
                 <padding>
                     <Insets bottom="10" left="20" right="10" top="10"/>
                 </padding>
 
-                <Label text="CONFIGURATION" style="-fx-font-weight: bold;"/>
+                <Label style="-fx-font-weight: bold;" text="CONFIGURATION"/>
 
                 <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
@@ -134,23 +154,22 @@
                     </padding>
 
                     <Label text="X:"/>
-                    <TextField fx:id="xTextField" promptText="X" text="10" maxWidth="100.0"/>
+                    <TextField maxWidth="100.0" promptText="X" text="10" fx:id="xTextField"/>
                 </HBox>
 
-                <Label text="THE NUMBER OF BIDS, ASKS, AND TRADES TO SHOW" wrapText="true"
-                       style="-fx-font-size: 10px;"/>
+                <Label style="-fx-font-size: 10px;" text="THE NUMBER OF BIDS, ASKS, AND TRADES TO SHOW"
+                       wrapText="true"/>
 
-                <Label text="CONTRARIAN TRADING STRATEGY SIMULATION" wrapText="true"
-                       style="-fx-padding: 40px 0px 0px 0px;"/>
+                <Label style="-fx-padding: 40px 0px 0px 0px;" text="CONTRARIAN TRADING STRATEGY SIMULATION"
+                       wrapText="true"/>
 
                 <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
                         <Insets top="10"/>
                     </padding>
-                    <Label fx:id="simulatorLabel" text="DISABLED" minHeight="20.0" minWidth="150.0"
-                           style="-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;
-                                -fx-border-color: #f5c6cb; -fx-border-width: 1px;"
-                           alignment="CENTER"/>
+                    <Label fx:id="simulatorLabel" alignment="CENTER" minHeight="20.0" minWidth="150.0"
+                           style="-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;                                 -fx-border-color: #f5c6cb; -fx-border-width: 1px;"
+                           text="DISABLED"/>
                 </HBox>
 
                 <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
@@ -159,10 +178,10 @@
                     </padding>
 
                     <Label text="M:"/>
-                    <TextField fx:id="mTextField" promptText="M" maxWidth="100.0"/>
+                    <TextField fx:id="mTextField" maxWidth="100.0" promptText="M"/>
                 </HBox>
 
-                <Label text="THE NUMBER OF UPTICKS" wrapText="true" style="-fx-font-size: 10px;"/>
+                <Label style="-fx-font-size: 10px;" text="THE NUMBER OF UPTICKS" wrapText="true"/>
 
                 <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
@@ -170,17 +189,17 @@
                     </padding>
 
                     <Label text="N:"/>
-                    <TextField fx:id="nTextField" promptText="N" maxWidth="100.0"/>
+                    <TextField fx:id="nTextField" maxWidth="100.0" promptText="N"/>
                 </HBox>
 
-                <Label text="THE NUMBER OF DOWNTICKS" wrapText="true" style="-fx-font-size: 10px;"/>
+                <Label style="-fx-font-size: 10px;" text="THE NUMBER OF DOWNTICKS" wrapText="true"/>
 
                 <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
                     <padding>
                         <Insets top="10"/>
                     </padding>
 
-                    <Button fx:id="simulatorToggleButton" text="ENABLE" minWidth="80.0"/>
+                    <Button fx:id="simulatorToggleButton" minWidth="80.0" text="ENABLE"/>
                 </HBox>
             </VBox>
         </AnchorPane>

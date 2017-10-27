@@ -1,6 +1,8 @@
 package br.com.pedront.bitsotrading;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -11,21 +13,33 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
+import org.glassfish.tyrus.client.ClientManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
+import br.com.pedront.bitsotrading.service.OrderService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 @ClientEndpoint
 public class BitsoWebSocket {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
+
+    private static final String BOOK = "btc_mxn";
+
+    public static final String BITSO_WSS_URL = "wss://ws.bitso.com";
 
     private Runnable orderQueueConsumer;
 
@@ -45,6 +59,16 @@ public class BitsoWebSocket {
         this.obsAsks = FXCollections.synchronizedObservableList(obsAsks);
         this.obsBids = FXCollections.synchronizedObservableList(obsBids);
         this.dashboardController = dashboardController;
+    }
+
+    public void start() {
+        ClientManager client = ClientManager.createClient();
+        try {
+            client.connectToServer(this, new URI(BITSO_WSS_URL));
+        } catch (DeploymentException | IOException | URISyntaxException e) {
+            LOGGER.error("Unexpected error with BitsoWebSocket, stack trace", e);
+        }
+
     }
 
     @OnOpen
@@ -160,7 +184,7 @@ public class BitsoWebSocket {
 
                                         if (mainViewUpdate.getReloadTrades()) {
                                             System.out.println("Reloading trades!");
-                                            dashboardController.reloadTrades();
+                                            dashboardController.loadTrades();
                                         }
                                     });
                                 }
