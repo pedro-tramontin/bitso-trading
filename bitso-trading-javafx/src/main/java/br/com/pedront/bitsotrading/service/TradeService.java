@@ -1,26 +1,27 @@
 package br.com.pedront.bitsotrading.service;
 
+import br.com.pedront.bitsotrading.ContrarianTrading;
+import br.com.pedront.bitsotrading.TradeComparator;
+import br.com.pedront.bitsotrading.converter.TradeDTOConverter;
+import br.com.pedront.bitsotrading.core.service.BitsoService;
+import br.com.pedront.bitsotrading.model.Trade;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import br.com.pedront.bitsotrading.ContrarianTrading;
-import br.com.pedront.bitsotrading.converter.TradeDTOConverter;
-import br.com.pedront.bitsotrading.core.service.BitsoService;
-import br.com.pedront.bitsotrading.model.Trade;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.control.TableView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@org.springframework.stereotype.Service
 public class TradeService extends Service<Boolean> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TradeService.class);
@@ -29,39 +30,39 @@ public class TradeService extends Service<Boolean> {
 
     public static final int TRADES_FETCH_DEFAULT = 50;
 
+    private SimpleIntegerProperty xProperty;
+    private SimpleIntegerProperty lastTid;
     private SimpleListProperty<Trade> newTrades;
 
-    private SimpleIntegerProperty lastTid;
+    private SortedList<Trade> sortedTrades;
+    private FilteredList<Trade> filteredTrades;
+    private TableView<Trade> tradeTableView;
+
+    private BitsoService bitsoService;
 
     private ContrarianTrading simulator;
 
-    @Autowired
-    private BitsoService bitsoService;
+    public TradeService(BitsoService bitsoService, SimpleIntegerProperty xProperty,
+        SimpleIntegerProperty mProperty, SimpleIntegerProperty nProperty,
+        SimpleBooleanProperty enableSimulation, TableView<Trade> tradeTableView) {
 
-    public TradeService() {
+        this.bitsoService = bitsoService;
+        this.xProperty = xProperty;
+        this.tradeTableView = tradeTableView;
+
+        this.simulator = new ContrarianTrading(mProperty, nProperty, enableSimulation);
+
         this.newTrades = new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
 
         this.lastTid = new SimpleIntegerProperty();
-    }
 
-    public ObservableList<Trade> getNewTrades() {
-        return newTrades.get();
+        this.xProperty.addListener((observable, oldValue, newValue) -> {
+            filteredTrades.setPredicate(p -> sortedTrades.indexOf(p) < newValue.intValue());
+        });
     }
 
     public SimpleListProperty<Trade> newTradesProperty() {
         return newTrades;
-    }
-
-    public void setNewTrades(final ObservableList<Trade> newTrades) {
-        this.newTrades.set(newTrades);
-    }
-
-    public void bindLastTidTo(SimpleIntegerProperty lastTid) {
-        this.lastTid.bind(lastTid);
-    }
-
-    public void setSimulator(ContrarianTrading simulator) {
-        this.simulator = simulator;
     }
 
     @Override
@@ -75,17 +76,18 @@ public class TradeService extends Service<Boolean> {
 
                     if (lastTid.get() == 0) {
                         newTradeList = TradeDTOConverter
-                                .convert(bitsoService.fetchTradesDesc(BOOK, TRADES_FETCH_DEFAULT));
+                            .convert(bitsoService.fetchTradesDesc(BOOK, TRADES_FETCH_DEFAULT));
                     } else {
                         newTradeList = TradeDTOConverter
-                                .convert(bitsoService.fetchTradesAsc(BOOK, lastTid.get(), TRADES_FETCH_DEFAULT));
+                            .convert(bitsoService
+                                .fetchTradesAsc(BOOK, lastTid.get(), TRADES_FETCH_DEFAULT));
                     }
 
                     if (simulator.isEnabled()) {
                         final List<Trade> simTrades = newTradeList.stream()
-                                .map(simulator::simulate)
-                                .filter(Objects::nonNull)
-                                .collect(Collectors.toList());
+                            .map(simulator::simulate)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
 
                         newTradesProperty().addAll(simTrades);
                     }
@@ -101,5 +103,32 @@ public class TradeService extends Service<Boolean> {
                 return true;
             }
         };
+    }
+
+    @Override
+    protected void succeeded() {
+        sortedTrades = newTradesProperty().sorted(new TradeComparator());
+        filteredTrades = sortedTrades.filtered(p -> sortedTrades.indexOf(p) < xProperty.get());
+        tradeTableView.setItems(filteredTrades);
+
+        if (sortedTrades.size() > 0) {
+            lastTid.set(sortedTrades.get(0).getTid());
+        }
+
+        reset();
+    }
+
+    @Override
+    protected void failed() {
+        LOGGER.info("Something went wrong, gonna try {} more times.", 3);
+
+        reset();
+
+        // TODO Change to [tries > 0]
+        if (true) {
+            // TODO [tries--]
+
+            start();
+        }
     }
 }

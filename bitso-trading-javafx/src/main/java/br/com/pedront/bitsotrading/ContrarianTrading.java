@@ -9,8 +9,7 @@ import javafx.util.converter.NumberStringConverter;
 
 /**
  * @author ptramontin
- * @version $Revision: $<br/>
- *          $Id: $
+ * @version $Revision: $<br/> $Id: $
  * @since 10/26/17 6:13 PM
  */
 public class ContrarianTrading {
@@ -23,14 +22,14 @@ public class ContrarianTrading {
 
     private SimpleIntegerProperty downTicks = new SimpleIntegerProperty();
 
-    private SimpleBooleanProperty enabled = new SimpleBooleanProperty(false);
+    private SimpleBooleanProperty enabled = new SimpleBooleanProperty();
 
-    public ContrarianTrading(StringProperty upticks, StringProperty downTicks, StringProperty enabled) {
-        Bindings
-                .bindBidirectional(upticks, this.upticks, new NumberStringConverter());
-        Bindings
-                .bindBidirectional(downTicks, this.downTicks, new NumberStringConverter());
-        Bindings.createBooleanBinding(() -> "ENABLED".equals(enabled.get()), this.enabled);
+    public ContrarianTrading(SimpleIntegerProperty upticks, SimpleIntegerProperty downTicks,
+        SimpleBooleanProperty enabled) {
+
+        this.upticks = upticks;
+        this.downTicks = downTicks;
+        this.enabled = enabled;
     }
 
     public Boolean isEnabled() {
