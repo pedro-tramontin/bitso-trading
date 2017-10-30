@@ -162,9 +162,6 @@ public class DashboardController implements Initializable {
 
         bitsoService.subscribeToDiffOrders(new DiffOrderProcessor(ordersQueue));
 
-        newOrdersConsumer = new DiffOrderConsumer(ordersQueue);
-        newOrdersConsumer.setDataConsumer(this::applyDiffOrderData);
-
         xTextField.textProperty().set(X_INITIAL.toString());
         mTextField.textProperty().set(M_INITIAL.toString());
         nTextField.textProperty().set(N_INITIAL.toString());
@@ -250,16 +247,20 @@ public class DashboardController implements Initializable {
         orderService.setOnSucceeded((event) -> {
             OrderBook orderBook = (OrderBook) event.getSource().getValue();
 
+            bids.clear();
             bids.addAll(orderBook.getBids());
             sortedBids = bids.sorted(Comparator.comparing(Order::getPrice).reversed());
             filteredBids = sortedBids.filtered(p -> sortedBids.indexOf(p) < xProperty.get());
             bestBidsTableView.setItems(filteredBids);
 
+            asks.clear();
             asks.addAll(orderBook.getAsks());
             sortedAsks = asks.sorted(Comparator.comparing(Order::getPrice));
             filteredAsks = sortedAsks.filtered(p -> sortedAsks.indexOf(p) < xProperty.get());
             bestAsksTableView.setItems(filteredAsks);
 
+            newOrdersConsumer = new DiffOrderConsumer(ordersQueue);
+            newOrdersConsumer.setDataConsumer(this::applyDiffOrderData);
             newOrdersConsumer.start();
 
             orderService.reset();
