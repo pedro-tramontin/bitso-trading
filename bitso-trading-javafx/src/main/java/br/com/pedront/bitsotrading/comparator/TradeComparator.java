@@ -1,4 +1,4 @@
-package br.com.pedront.bitsotrading;
+package br.com.pedront.bitsotrading.comparator;
 
 import br.com.pedront.bitsotrading.model.Trade;
 import java.util.Comparator;

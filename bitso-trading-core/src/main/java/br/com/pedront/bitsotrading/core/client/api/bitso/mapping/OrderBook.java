@@ -1,5 +1,6 @@
 package br.com.pedront.bitsotrading.core.client.api.bitso.mapping;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,17 +10,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class OrderBook {
 
-    /** List of open asks */
+    public static final OrderBook EMPTY = initNullOrderBook();
+
+    private static OrderBook initNullOrderBook() {
+        OrderBook orderBook = new OrderBook();
+        orderBook.setAsks(Collections.EMPTY_LIST);
+        orderBook.setBids(Collections.EMPTY_LIST);
+
+        return orderBook;
+    }
+
+    /**
+     * List of open asks
+     */
     private List<Order> asks;
 
-    /** List of open bids */
+    /**
+     * List of open bids
+     */
     private List<Order> bids;
 
-    /** Timestamp at which the order was last updated */
+    /**
+     * Timestamp at which the order was last updated
+     */
     @JsonProperty("updated_at")
     private String updatedAt;
 
-    /** Increasing integer value for each order book update. */
+    /**
+     * Increasing integer value for each order book update.
+     */
     private String sequence;
 
     public List<Order> getAsks() {
@@ -57,16 +76,16 @@ public class OrderBook {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("OrderBook [")//
-                .append("asks=")//
-                .append(asks)//
-                .append(",bids=")//
-                .append(bids)//
-                .append(",updatedAt=\"")//
-                .append(updatedAt).append("\"")//
-                .append(",sequence=\"")//
-                .append(sequence).append("\"")//
-                .append("]");
+            .append("OrderBook [")//
+            .append("asks=")//
+            .append(asks)//
+            .append(",bids=")//
+            .append(bids)//
+            .append(",updatedAt=\"")//
+            .append(updatedAt).append("\"")//
+            .append(",sequence=\"")//
+            .append(sequence).append("\"")//
+            .append("]");
         return builder.toString();
     }
 }

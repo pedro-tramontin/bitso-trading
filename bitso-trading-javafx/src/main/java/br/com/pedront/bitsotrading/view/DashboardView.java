@@ -1,4 +1,4 @@
-package br.com.pedront.bitsotrading;
+package br.com.pedront.bitsotrading.view;
 
 import de.felixroske.jfxsupport.AbstractFxmlView;
 import de.felixroske.jfxsupport.FXMLView;

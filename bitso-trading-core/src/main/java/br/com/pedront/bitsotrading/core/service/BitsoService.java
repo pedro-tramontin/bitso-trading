@@ -1,5 +1,6 @@
 package br.com.pedront.bitsotrading.core.service;
 
+import br.com.pedront.bitsotrading.core.service.callback.WebSocketMessageProcessor;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,9 @@ import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBookRespon
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradesResponse;
 
+/**
+ * Encapsulates the calls to the Bitso API, with specific functions used by the application.
+ */
 @Service
 public class BitsoService {
 
@@ -19,23 +23,53 @@ public class BitsoService {
     @Autowired
     private BitsoApiIntegration bitsoApiIntegration;
 
+    /**
+     * Fetches the Order Book from the public REST API.
+     *
+     * @param book the order book symbol.
+     */
     public OrderBook fetchOrders(String book) {
         OrderBookResponse orderBookResponse = bitsoApiIntegration
-                .orderBook(book, AGGREGATE_ORDERS_DEFAULT.toString());
+            .orderBook(book, AGGREGATE_ORDERS_DEFAULT.toString());
 
         return orderBookResponse.getPayload();
     }
 
+    /**
+     * Fetches the trades in ascending order from the public REST API.
+     *
+     * @param book the order book symbol.
+     * @param lastOID the last order ID to be filtered.
+     * @param limit the limit number of trades to be returned.
+     */
     public List<Trade> fetchTradesAsc(String book, Integer lastOID, Integer limit) {
         TradesResponse tradesResponse = bitsoApiIntegration.trades(book, lastOID, "asc", limit);
 
         return tradesResponse.getPayload();
     }
 
+    /**
+     * Fetches the trades in descending order from the public REST API.
+     *
+     * @param book the order book symbol.
+     * @param limit the limit number of trades to be returned.
+     */
     public List<Trade> fetchTradesDesc(String book, Integer limit) {
         TradesResponse tradesResponse = bitsoApiIntegration.trades(book, null, "desc", limit);
 
         return tradesResponse.getPayload();
     }
 
+    /**
+     * Subscribes to the diff-orders WebSocket channel.
+     *
+     * @param webSocketMessageProcessor a processor for the channel's messages
+     */
+    public BitsoWebSocketService subscribeToDiffOrders(
+        WebSocketMessageProcessor webSocketMessageProcessor) {
+
+        return BitsoWebSocketService
+            .subscribe("diff-orders")
+            .with(webSocketMessageProcessor);
+    }
 }
