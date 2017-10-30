@@ -1,11 +1,18 @@
 package br.com.pedront.bitsotrading.wrapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.DiffOrder;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
 
 public class DiffOrderWrapper {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiffOrderWrapper.class);
+
     private DiffOrder diffOrder;
+
+    private Order order;
 
     private DiffOrderWrapper(DiffOrder diffOrder) {
         this.diffOrder = diffOrder;
@@ -15,21 +22,33 @@ public class DiffOrderWrapper {
         return new DiffOrderWrapper(diffOrder);
     }
 
-    public DiffOrderStatus status() {
+    public OrderStatus status() {
 
         if ("open".equals(diffOrder.getStatus())) {
-            return DiffOrderStatus.OPEN;
+            return OrderStatus.OPEN;
         } else if ("completed".equals(diffOrder.getStatus())) {
-            return DiffOrderStatus.COMPLETED;
+            return OrderStatus.COMPLETED;
         } else if ("cancelled".equals(diffOrder.getStatus())) {
-            return DiffOrderStatus.CANCELED;
+            return OrderStatus.CANCELED;
         }
 
-        return DiffOrderStatus.UNKNOWN;
+        return OrderStatus.UNKNOWN;
     }
 
-    public DiffOrder getDiffOrder() {
-        return diffOrder;
+    public Boolean isValid() {
+        if (status() == OrderStatus.UNKNOWN) {
+            LOGGER.error("Can't process message, order status unknown, message={}", diffOrder);
+
+            return false;
+        }
+
+        if (getOrderSide() == OrderSide.UNKNOWN) {
+            LOGGER.error("Can't process message, order side unknown, message={}", diffOrder);
+
+            return false;
+        }
+
+        return true;
     }
 
     public OrderSide getOrderSide() {
@@ -43,7 +62,11 @@ public class DiffOrderWrapper {
     }
 
     public Order getOrder(String book) {
-        return new Order(book, diffOrder.getRate(), diffOrder.getAmount(),
-            diffOrder.getOid());
+        if (order == null) {
+            order = new Order(book, diffOrder.getRate(), diffOrder.getAmount(),
+                    diffOrder.getOid());
+        }
+
+        return order;
     }
 }

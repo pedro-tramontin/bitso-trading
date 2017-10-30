@@ -2,19 +2,6 @@ package br.com.pedront.bitsotrading.controller;
 
 import static javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY;
 
-import br.com.pedront.bitsotrading.service.ContrarianTradingService;
-import br.com.pedront.bitsotrading.service.dto.DiffOrderData;
-import br.com.pedront.bitsotrading.websocket.DiffOrderProcessor;
-import br.com.pedront.bitsotrading.comparator.TradeComparator;
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.DiffOrderMessage;
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBook;
-import br.com.pedront.bitsotrading.core.service.BitsoService;
-import br.com.pedront.bitsotrading.model.Trade;
-import br.com.pedront.bitsotrading.service.DiffOrderConsumer;
-import br.com.pedront.bitsotrading.service.OrderService;
-import br.com.pedront.bitsotrading.service.TradeService;
-import de.felixroske.jfxsupport.FXMLController;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -25,8 +12,27 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
+
+import javax.annotation.PreDestroy;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import br.com.pedront.bitsotrading.comparator.TradeComparator;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.DiffOrderMessage;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBook;
+import br.com.pedront.bitsotrading.core.service.BitsoService;
+import br.com.pedront.bitsotrading.model.Trade;
+import br.com.pedront.bitsotrading.service.ContrarianTradingService;
+import br.com.pedront.bitsotrading.service.DiffOrderConsumer;
+import br.com.pedront.bitsotrading.service.OrderService;
+import br.com.pedront.bitsotrading.service.TradeService;
+import br.com.pedront.bitsotrading.service.dto.DiffOrderData;
+import br.com.pedront.bitsotrading.websocket.DiffOrderWebSocketConsumer;
+import de.felixroske.jfxsupport.FXMLController;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.StringProperty;
@@ -39,15 +45,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * The Dashboard controller
+ */
 @FXMLController
 public class DashboardController implements Initializable {
 
@@ -59,14 +63,15 @@ public class DashboardController implements Initializable {
 
     private static final Integer N_INITIAL = 2;
 
-    public static final String LABEL_ENABLED_TEXT = "ENABLED";
+    private static final String LABEL_ENABLED_TEXT = "ENABLED";
 
-    public static final String LABEL_DISABLED_TEXT = "DISABLED";
+    private static final String LABEL_DISABLED_TEXT = "DISABLED";
 
-    public static final String BUTTON_DISABLE_TEXT = "DISABLE";
+    private static final String BUTTON_DISABLE_TEXT = "DISABLE";
 
-    public static final String BUTTON_ENABLE_TEXT = "ENABLE";
+    private static final String BUTTON_ENABLE_TEXT = "ENABLE";
 
+    /* Fields */
     @FXML
     public TableView<Order> bestBidsTableView;
 
@@ -100,34 +105,39 @@ public class DashboardController implements Initializable {
     @FXML
     public HBox paneProgressTrades;
 
-    private final SimpleIntegerProperty xProperty = new SimpleIntegerProperty();
+    /* Properties */
+    private final SimpleIntegerProperty xProperty;
+    private final SimpleIntegerProperty mProperty;
+    private final SimpleIntegerProperty nProperty;
 
-    private final SimpleIntegerProperty mProperty = new SimpleIntegerProperty();
+    private final SimpleListProperty<Trade> trades;
+    private final SimpleListProperty<Order> bids;
+    private final SimpleListProperty<Order> asks;
 
-    private final SimpleIntegerProperty nProperty = new SimpleIntegerProperty();
-
-    private final SimpleBooleanProperty simulationProperty = new SimpleBooleanProperty();
-
-    private SimpleListProperty<Trade> trades;
+    /* Recalculated lists */
     private SortedList<Trade> sortedTrades;
     private FilteredList<Trade> filteredTrades;
 
-    private SimpleIntegerProperty lastTid;
-
-    private Integer tradesTries;
-
-    private SimpleListProperty<Order> bids;
     private SortedList<Order> sortedBids;
     private FilteredList<Order> filteredBids;
 
-    private SimpleListProperty<Order> asks;
     private SortedList<Order> sortedAsks;
     private FilteredList<Order> filteredAsks;
 
+    /* Flag indicating if the simulation is running */
+    private Boolean simulate;
+
+    /* Last Trade ID used in TradeService */
+    private Integer lastTid;
+
+    /* Tries to restart the Order/Trade services */
+    private Integer tradesTries;
     private Integer ordersTries;
 
-    private BlockingQueue<DiffOrderMessage> ordersQueue = new LinkedBlockingQueue<>();
+    /* Queue to centralise the Diff-Order messages received from Bitso WebSocket */
+    private final BlockingQueue<DiffOrderMessage> ordersQueue;
 
+    /* Consumer for the messages in the queue */
     private DiffOrderConsumer newOrdersConsumer;
 
     @Autowired
@@ -142,40 +152,66 @@ public class DashboardController implements Initializable {
     @Autowired
     private ContrarianTradingService simulator;
 
+    public DashboardController() {
+
+        // simple properties
+        xProperty = new SimpleIntegerProperty();
+        mProperty = new SimpleIntegerProperty();
+        nProperty = new SimpleIntegerProperty();
+
+        // list properties
+        trades = new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
+        bids = new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
+        asks = new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
+
+        // objects
+        ordersQueue = new LinkedBlockingQueue<>();
+
+        // simple variables
+        lastTid = 0;
+        simulate = false;
+        tradesTries = 3;
+        ordersTries = 3;
+    }
+
     @Override
     public void initialize(final URL location, final ResourceBundle resources) {
 
+        configServices();
+        configComponents();
+        configInitialValues();
+        configListeners();
+        configBinds();
+        configCallbacks();
+
+        loadTrades();
+        loadOrderBook();
+    }
+
+    private void configServices() {
+        bitsoService.subscribeToDiffOrders(new DiffOrderWebSocketConsumer(ordersQueue));
+    }
+
+    private void configComponents() {
         tradesTableView.setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY);
-        for (TableColumn column : tradesTableView.getColumns()) {
-            column.prefWidthProperty().bind(tradesTableView.widthProperty().multiply(0.20));
-        }
-
         bestBidsTableView.setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY);
-        for (TableColumn column : bestBidsTableView.getColumns()) {
-            column.prefWidthProperty().bind(bestBidsTableView.widthProperty().multiply(0.50));
-        }
-
         bestAsksTableView.setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY);
-        for (TableColumn column : bestAsksTableView.getColumns()) {
-            column.prefWidthProperty().bind(bestAsksTableView.widthProperty().multiply(0.50));
-        }
+    }
 
-        bitsoService.subscribeToDiffOrders(new DiffOrderProcessor(ordersQueue));
-
+    private void configInitialValues() {
         xTextField.textProperty().set(X_INITIAL.toString());
         mTextField.textProperty().set(M_INITIAL.toString());
         nTextField.textProperty().set(N_INITIAL.toString());
+    }
 
-        xProperty.bind(
-            Bindings.createIntegerBinding(textPropertyToInteger(xTextField.textProperty()),
-                xTextField.textProperty()));
-        mProperty.bind(
-            Bindings.createIntegerBinding(textPropertyToInteger(mTextField.textProperty()),
-                mTextField.textProperty()));
-        nProperty.bind(
-            Bindings.createIntegerBinding(textPropertyToInteger(nTextField.textProperty()),
-                nTextField.textProperty()));
-        simulationProperty.bind(Bindings.equal(LABEL_ENABLED_TEXT, simulatorLabel.textProperty()));
+    private void configListeners() {
+        xProperty.addListener((observable, oldValue, newValue) -> {
+            updateFilteredTableView(filteredTrades, sortedTrades, newValue);
+            updateFilteredTableView(filteredBids, sortedBids, newValue);
+            updateFilteredTableView(filteredAsks, sortedAsks, newValue);
+        });
+        mProperty.addListener((observable, oldValue, newValue) -> simulator.setUpticks(newValue.intValue()));
+        nProperty.addListener((observable, oldValue, newValue) -> simulator.setDownTicks(newValue.intValue()));
 
         xTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if ("".equals(newValue)) {
@@ -184,41 +220,50 @@ public class DashboardController implements Initializable {
                 xTextField.setText(Integer.toString(Integer.valueOf(newValue)));
             }
         });
+    }
 
-        mProperty.addListener((observable, oldValue, newValue) -> {
-            simulator.setUpticks(newValue.intValue());
-        });
+    private void configBinds() {
+        xProperty.bind(
+                Bindings.createIntegerBinding(textPropertyToInteger(xTextField.textProperty()),
+                        xTextField.textProperty()));
+        mProperty.bind(
+                Bindings.createIntegerBinding(textPropertyToInteger(mTextField.textProperty()),
+                        mTextField.textProperty()));
+        nProperty.bind(
+                Bindings.createIntegerBinding(textPropertyToInteger(nTextField.textProperty()),
+                        nTextField.textProperty()));
 
-        nProperty.addListener((observable, oldValue, newValue) -> {
-            simulator.setDownTicks(newValue.intValue());
-        });
+        paneProgressTrades.visibleProperty()
+                .bind(tradeService.stateProperty()
+                        .isEqualTo(Worker.State.RUNNING));
+        paneProgressBids.visibleProperty()
+                .bind(orderService.stateProperty()
+                        .isEqualTo(Worker.State.RUNNING));
+        paneProgressAsks.visibleProperty()
+                .bind(orderService.stateProperty()
+                        .isEqualTo(Worker.State.RUNNING));
+    }
 
-        xProperty.addListener((observable, oldValue, newValue) -> {
-            filteredTrades.setPredicate(p -> sortedTrades.indexOf(p) < newValue.intValue());
-            filteredBids.setPredicate(p -> sortedBids.indexOf(p) < newValue.intValue());
-            filteredAsks.setPredicate(p -> sortedAsks.indexOf(p) < newValue.intValue());
-        });
-
-        simulatorToggleButton.setOnAction((event) -> {
-            if (simulationProperty.get()) {
+    @SuppressWarnings("unchecked")
+    private void configCallbacks() {
+        simulatorToggleButton.setOnAction(event -> {
+            if (simulate) {
                 disableToggleButton();
             } else {
                 enableToggleButton();
             }
+
+            simulate = !simulate;
         });
 
-        trades = new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
-        lastTid = new SimpleIntegerProperty(0);
-        tradesTries = 3;
-
-        tradeService.setOnSucceeded((event) -> {
+        tradeService.setOnSucceeded(event -> {
             List<Trade> tradeList = (List<Trade>) event.getSource().getValue();
 
-            if (simulationProperty.get()) {
+            if (simulate) {
                 final List<Trade> simTrades = tradeList.stream()
-                    .map(simulator::simulate)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                        .map(simulator::simulate)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
                 trades.addAll(simTrades);
             }
@@ -229,22 +274,16 @@ public class DashboardController implements Initializable {
             tradesTableView.setItems(filteredTrades);
 
             if (sortedTrades.size() > 0) {
-                lastTid.set(sortedTrades.get(0).getTid());
+                lastTid = sortedTrades.get(0).getTid();
             }
 
             tradeService.reset();
             tradesTries = 3;
         });
 
-        tradeService.setOnFailed((event) -> {
-            tradesTries = treatFailService(tradeService, tradesTries);
-        });
+        tradeService.setOnFailed(event -> tradesTries = treatFailService(tradeService, tradesTries));
 
-        bids = new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
-        asks = new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
-        ordersTries = 3;
-
-        orderService.setOnSucceeded((event) -> {
+        orderService.setOnSucceeded(event -> {
             OrderBook orderBook = (OrderBook) event.getSource().getValue();
 
             bids.clear();
@@ -266,22 +305,14 @@ public class DashboardController implements Initializable {
             orderService.reset();
         });
 
-        orderService
-            .setOnFailed((event) -> ordersTries = treatFailService(orderService, ordersTries));
+        orderService.setOnFailed(event -> ordersTries = treatFailService(orderService, ordersTries));
+    }
 
-        paneProgressTrades.visibleProperty()
-            .bind(tradeService.stateProperty()
-                .isEqualTo(Worker.State.RUNNING));
-        paneProgressBids.visibleProperty()
-            .bind(orderService.stateProperty()
-                .isEqualTo(Worker.State.RUNNING));
-        paneProgressAsks.visibleProperty()
-            .bind(orderService.stateProperty()
-                .isEqualTo(Worker.State.RUNNING));
-
-        loadTrades();
-
-        loadOrderBook();
+    private <T> void updateFilteredTableView(final FilteredList<T> filteredList, final SortedList<T> sortedList,
+            final Number newValue) {
+        if (filteredList != null && sortedList != null) {
+            filteredList.setPredicate(p -> sortedList.indexOf(p) < newValue.intValue());
+        }
     }
 
     private Callable<Integer> textPropertyToInteger(StringProperty stringProperty) {
@@ -297,8 +328,7 @@ public class DashboardController implements Initializable {
     private Integer treatFailService(final Service service, final Integer tries) {
         Integer triesNewValue = tries;
 
-        LOGGER
-            .info("Something went wrong with service {}, gonna try {} more times.", service, tries);
+        LOGGER.info("Something went wrong with service {}, gonna try {} more times.", service, tries);
 
         if (tries > 0) {
             triesNewValue = tries - 1;
@@ -312,8 +342,8 @@ public class DashboardController implements Initializable {
 
     private void enableToggleButton() {
         toggleSimulatorButton(BUTTON_DISABLE_TEXT, LABEL_ENABLED_TEXT,
-            "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold; "
-                + "-fx-border-color: #c3e6cb; -fx-border-width: 1px");
+                "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold; "
+                        + "-fx-border-color: #c3e6cb; -fx-border-width: 1px");
 
         Double lastTradePrice = 0.0;
         if (trades.size() > 0) {
@@ -325,32 +355,32 @@ public class DashboardController implements Initializable {
 
     private void disableToggleButton() {
         toggleSimulatorButton(BUTTON_ENABLE_TEXT, LABEL_DISABLED_TEXT,
-            "-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold; "
-                + "-fx-border-color: #f5c6cb; -fx-border-width: 1px");
+                "-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold; "
+                        + "-fx-border-color: #f5c6cb; -fx-border-width: 1px");
     }
 
     private void toggleSimulatorButton(final String buttonText, final String labelText,
-        final String labelStyle) {
+            final String labelStyle) {
         simulatorToggleButton.setText(buttonText);
 
         simulatorLabel.setText(labelText);
         simulatorLabel.setStyle(labelStyle);
     }
 
-    void loadTrades() {
+    private void loadTrades() {
         if (tradeService.getState() != Worker.State.READY) {
             LOGGER.error("The TradeService is not in the READY state, it's in {}.",
-                tradeService.getState());
+                    tradeService.getState());
         } else {
-            tradeService.setLastTid(lastTid.get());
+            tradeService.setLastTid(lastTid);
             tradeService.start();
         }
     }
 
-    void loadOrderBook() {
+    private void loadOrderBook() {
         if (orderService.getState() != Worker.State.READY) {
             LOGGER.error("The OrderService is not in the READY state, it's in {}.",
-                orderService.getState());
+                    orderService.getState());
         } else {
             bids.clear();
             asks.clear();
@@ -359,18 +389,16 @@ public class DashboardController implements Initializable {
         }
     }
 
-    void applyDiffOrderData(DiffOrderData diffOrderData) {
-        diffOrderData.getRemoveBidList().stream().map(this::removeBidIfPresent)
-            .collect(Collectors.toList());
-        diffOrderData.getAddBidList().stream().map(bids::add).collect(Collectors.toList());
+    private void applyDiffOrderData(DiffOrderData diffOrderData) {
+        diffOrderData.getRemoveBidList().forEach(this::removeBidIfPresent);
+        bids.addAll(diffOrderData.getAddBidList());
 
         sortedBids = bids.sorted(Comparator.comparing(Order::getPrice).reversed());
         filteredBids = sortedBids.filtered(p -> sortedBids.indexOf(p) < xProperty.get());
         bestBidsTableView.setItems(filteredBids);
 
-        diffOrderData.getRemoveAskList().stream().map(this::removeAskIfPresent)
-            .collect(Collectors.toList());
-        diffOrderData.getAddAskList().stream().map(asks::add).collect(Collectors.toList());
+        diffOrderData.getRemoveAskList().forEach(this::removeAskIfPresent);
+        asks.addAll(diffOrderData.getAddAskList());
 
         sortedAsks = asks.sorted(Comparator.comparing(Order::getPrice));
         filteredAsks = sortedAsks.filtered(p -> sortedAsks.indexOf(p) < xProperty.get());
@@ -386,13 +414,14 @@ public class DashboardController implements Initializable {
     }
 
     private boolean removeBidIfPresent(Order order) {
-        return bids.removeIf((p) -> p.getOid().equals(order.getOid()));
+        return bids.removeIf(p -> p.getOid().equals(order.getOid()));
     }
 
     private boolean removeAskIfPresent(Order order) {
-        return asks.removeIf((p) -> p.getOid().equals(order.getOid()));
+        return asks.removeIf(p -> p.getOid().equals(order.getOid()));
     }
 
+    /** @noinspection unused */
     @PreDestroy
     public void close() {
         newOrdersConsumer.stopRunning();

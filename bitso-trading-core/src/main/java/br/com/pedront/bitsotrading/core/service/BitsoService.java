@@ -1,7 +1,7 @@
 package br.com.pedront.bitsotrading.core.service;
 
-import br.com.pedront.bitsotrading.core.service.callback.WebSocketMessageProcessor;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,17 +20,20 @@ public class BitsoService {
 
     private static final Boolean AGGREGATE_ORDERS_DEFAULT = false;
 
+    public static final String DIFF_ORDER_CHANNEL = "diff-orders";
+
     @Autowired
     private BitsoApiIntegration bitsoApiIntegration;
 
     /**
      * Fetches the Order Book from the public REST API.
      *
-     * @param book the order book symbol.
+     * @param book
+     *            the order book symbol.
      */
     public OrderBook fetchOrders(String book) {
         OrderBookResponse orderBookResponse = bitsoApiIntegration
-            .orderBook(book, AGGREGATE_ORDERS_DEFAULT.toString());
+                .orderBook(book, AGGREGATE_ORDERS_DEFAULT.toString());
 
         return orderBookResponse.getPayload();
     }
@@ -38,9 +41,12 @@ public class BitsoService {
     /**
      * Fetches the trades in ascending order from the public REST API.
      *
-     * @param book the order book symbol.
-     * @param lastOID the last order ID to be filtered.
-     * @param limit the limit number of trades to be returned.
+     * @param book
+     *            the order book symbol.
+     * @param lastOID
+     *            the last order ID to be filtered.
+     * @param limit
+     *            the limit number of trades to be returned.
      */
     public List<Trade> fetchTradesAsc(String book, Integer lastOID, Integer limit) {
         TradesResponse tradesResponse = bitsoApiIntegration.trades(book, lastOID, "asc", limit);
@@ -51,8 +57,10 @@ public class BitsoService {
     /**
      * Fetches the trades in descending order from the public REST API.
      *
-     * @param book the order book symbol.
-     * @param limit the limit number of trades to be returned.
+     * @param book
+     *            the order book symbol.
+     * @param limit
+     *            the limit number of trades to be returned.
      */
     public List<Trade> fetchTradesDesc(String book, Integer limit) {
         TradesResponse tradesResponse = bitsoApiIntegration.trades(book, null, "desc", limit);
@@ -63,13 +71,14 @@ public class BitsoService {
     /**
      * Subscribes to the diff-orders WebSocket channel.
      *
-     * @param webSocketMessageProcessor a processor for the channel's messages
+     * @param messageConsumer
+     *            a consumer for the channel's messages
      */
     public BitsoWebSocketService subscribeToDiffOrders(
-        WebSocketMessageProcessor webSocketMessageProcessor) {
+            Consumer<String> messageConsumer) {
 
         return BitsoWebSocketService
-            .subscribe("diff-orders")
-            .with(webSocketMessageProcessor);
+                .subscribe(DIFF_ORDER_CHANNEL)
+                .with(messageConsumer);
     }
 }

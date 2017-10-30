@@ -1,9 +1,10 @@
 package br.com.pedront.bitsotrading.core.service;
 
-import br.com.pedront.bitsotrading.core.service.callback.WebSocketMessageProcessor;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Consumer;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
@@ -11,6 +12,7 @@ import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +35,7 @@ public class BitsoWebSocketService {
 
     private String channel;
 
-    private WebSocketMessageProcessor webSocketMessageProcessor;
+    private Consumer<String> messageProcessor;
 
     private BitsoWebSocketService(String channel) {
         this.channel = channel;
@@ -43,15 +45,15 @@ public class BitsoWebSocketService {
     /**
      * Subscribe to the channel
      */
-    static BitsoWebSocketService subscribe(String channel) {
+    static BitsoWebSocketService subscribe(final String channel) {
         return new BitsoWebSocketService(channel);
     }
 
     /**
      * Defines the processor for the messages
      */
-    BitsoWebSocketService with(WebSocketMessageProcessor webSocketMessageProcessor) {
-        this.webSocketMessageProcessor = webSocketMessageProcessor;
+    BitsoWebSocketService with(Consumer<String> messageProcessor) {
+        this.messageProcessor = messageProcessor;
 
         start();
 
@@ -103,7 +105,7 @@ public class BitsoWebSocketService {
     public void onMessage(String message, Session session) {
         LOGGER.debug("Processing message {} from session {}", message, session.getId());
 
-        webSocketMessageProcessor.process(message);
+        messageProcessor.accept(message);
     }
 
     /**

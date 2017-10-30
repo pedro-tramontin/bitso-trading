@@ -9,7 +9,7 @@ import br.com.pedront.bitsotrading.core.CoreConfig;
 import de.felixroske.jfxsupport.AbstractJavaFxApplicationSupport;
 
 @Import({
-    CoreConfig.class
+        CoreConfig.class
 })
 @EnableAutoConfiguration
 @SpringBootApplication

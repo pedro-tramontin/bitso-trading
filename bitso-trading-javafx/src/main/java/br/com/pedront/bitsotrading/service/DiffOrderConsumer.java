@@ -1,33 +1,41 @@
 package br.com.pedront.bitsotrading.service;
 
-import br.com.pedront.bitsotrading.service.dto.DiffOrderData;
-import br.com.pedront.bitsotrading.wrapper.DiffOrderStatus;
-import br.com.pedront.bitsotrading.wrapper.DiffOrderWrapper;
-import br.com.pedront.bitsotrading.wrapper.OrderSide;
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.DiffOrder;
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.DiffOrderMessage;
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import javafx.application.Platform;
+import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.DiffOrderMessage;
+import br.com.pedront.bitsotrading.service.dto.DiffOrderData;
+import br.com.pedront.bitsotrading.wrapper.DiffOrderWrapper;
+import br.com.pedront.bitsotrading.wrapper.OrderSide;
+import br.com.pedront.bitsotrading.wrapper.OrderStatus;
+import javafx.application.Platform;
+
+/**
+ * Consumer for diff-order messages.
+ */
 public class DiffOrderConsumer extends Thread {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DiffOrderConsumer.class);
 
     private static final Long SEQUENCE_INIT_VAL = 0L;
 
+    /** Queue that contains the diff-orders to be processed */
     private BlockingQueue<DiffOrderMessage> ordersQueue;
 
+    /** Data produced by this consumer */
     private DiffOrderData diffOrderData;
 
-    private DiffOrderDataConsumer dataConsumer;
+    /** Consumer to process the data produced in the main thread */
+    private Consumer<DiffOrderData> dataConsumer;
 
+    /** Next sequence expected */
     private Long nextSequence;
 
+    /** Indicates if the thread is running */
     private Boolean running;
 
     public DiffOrderConsumer(BlockingQueue<DiffOrderMessage> ordersQueue) {
@@ -47,154 +55,99 @@ public class DiffOrderConsumer extends Thread {
             try {
                 // Poll instead of take, don't block the thread forever
                 DiffOrderMessage diffOrderMessage = ordersQueue
-                    .poll(30, TimeUnit.SECONDS);
+                        .poll(30, TimeUnit.SECONDS);
                 if (diffOrderMessage != null) {
                     Long msgSequence = diffOrderMessage.getSequence();
-                    if (SEQUENCE_INIT_VAL.equals(nextSequence)) {
-                        nextSequence = msgSequence;
-                    }
-
-                    if (nextSequence.equals(msgSequence)) {
+                    if (isSequenceOK(msgSequence)) {
                         nextSequence++;
 
-                        processDiffOrderPayload(diffOrderMessage.getBook(),
-                            diffOrderMessage.getPayload());
+                        processDiffOrderMessage(diffOrderMessage);
                     } else {
-                        LOGGER.warn(
-                            "Sequence desynchronized, must have lost packet, nextSequence={}, received={}",
-                            nextSequence, msgSequence);
-
-                        running = false;
-
-                        nextSequence = SEQUENCE_INIT_VAL;
-
-                        diffOrderData.setReloadLists();
-                        applyDiffOrderData();
+                        reloadListsAndStopThread(msgSequence);
                     }
                 }
             } catch (InterruptedException e) {
                 LOGGER.error("Received interruption while waiting for new message in queue.", e);
 
-                running = false;
+                Thread.currentThread().interrupt();
             }
         }
 
         LOGGER.info("Consumer exiting.");
     }
 
-    private void processDiffOrderPayload(final String book, final List<DiffOrder> diffOrderList) {
-        for (DiffOrder diffOrder : diffOrderList) {
+    private boolean isSequenceOK(final Long msgSequence) {
+        if (SEQUENCE_INIT_VAL.equals(nextSequence)) {
+            nextSequence = msgSequence;
+        }
 
-            DiffOrderWrapper wrapper = DiffOrderWrapper.newWrapper(diffOrder);
-            if (wrapper.status() != DiffOrderStatus.UNKNOWN) {
+        return nextSequence.equals(msgSequence);
+    }
 
-                if (wrapper.getOrderSide() != OrderSide.UNKNOWN) {
+    private void reloadListsAndStopThread(final Long msgSequence) {
+        LOGGER.warn("Sequence desynchronized, must have lost packet, nextSequence={}, received={}",
+                nextSequence, msgSequence);
 
-                    if (wrapper.status() == DiffOrderStatus.COMPLETED) {
+        running = false;
+
+        diffOrderData.setReloadLists();
+        applyDiffOrderData();
+    }
+
+    /**
+     * Process the diff-order message, adding/removing orders from the bid and ask lists and also settings the trades
+     * list to be reloaded with the REST API.
+     */
+    private void processDiffOrderMessage(final DiffOrderMessage message) {
+        message.getPayload().stream()
+                .map(DiffOrderWrapper::newWrapper)
+                .filter(DiffOrderWrapper::isValid)
+                .forEach(wrapper -> {
+                    if (wrapper.status() == OrderStatus.COMPLETED) {
                         diffOrderData.setNewTrades(true);
                     }
 
-                    Order order = wrapper.getOrder(book);
-
                     if (wrapper.getOrderSide() == OrderSide.BUY) {
-                        diffOrderData.removeBid(order);
+                        diffOrderData.removeBid(wrapper.getOrder(message.getBook()));
                     } else {
-                        diffOrderData.removeAsk(order);
+                        diffOrderData.removeAsk(wrapper.getOrder(message.getBook()));
                     }
 
-                    if (wrapper.status() == DiffOrderStatus.OPEN) {
+                    if (wrapper.status() == OrderStatus.OPEN) {
                         if (wrapper.getOrderSide() == OrderSide.BUY) {
-                            diffOrderData.addBid(order);
+                            diffOrderData.addBid(wrapper.getOrder(message.getBook()));
                         } else {
-                            diffOrderData.addAsk(order);
+                            diffOrderData.addAsk(wrapper.getOrder(message.getBook()));
                         }
                     }
-                } else {
-                    LOGGER
-                        .error("Can't process message, order side unknown, message={}", diffOrder);
-                }
-            } else {
-                LOGGER.error("Can't process message, status unknown, message={}", diffOrder);
-            }
-        }
+                });
 
         applyDiffOrderData();
     }
 
+    /**
+     * Stop running the thread
+     */
     public void stopRunning() {
         running = false;
     }
 
-    public void setDataConsumer(DiffOrderDataConsumer dataConsumer) {
+    /**
+     * Consumer that will process the data produced by this consumer
+     */
+    public void setDataConsumer(Consumer<DiffOrderData> dataConsumer) {
         this.dataConsumer = dataConsumer;
     }
 
+    /**
+     * Makes a copy of the data produced and calls the consumer to process it.<br/>
+     * Resets the data state after calling the Platform.runLater(...).
+     */
     private void applyDiffOrderData() {
-        Platform.runLater(() -> {
-            dataConsumer.apply(diffOrderData.clone());
-            diffOrderData.reset();
-        });
+        DiffOrderData copyData = new DiffOrderData(diffOrderData);
+
+        Platform.runLater(() -> dataConsumer.accept(copyData));
+
+        diffOrderData.reset();
     }
-
-    /*public void setAddOrders(BiConsumer<List<Order>, List<Order>> addOrders) {
-        this.addOrders = addOrders;
-    }
-
-    public void setRemoveOrders(BiConsumer<List<Order>, List<Order>> removeOrders) {
-        this.removeOrders = removeOrders;
-    }
-
-    public void setTradesReload(DiffOrderDataConsumer tradesReload) {
-        this.tradesReload = tradesReload;
-    }
-
-    public void setOrdersReload(DiffOrderDataConsumer ordersReload) {
-        this.ordersReload = ordersReload;
-    }
-
-    private void reloadTrades() {
-        LOGGER.debug("Reloading trades list");
-
-        reloadTrades = false;
-
-        if (tradesReload != null) {
-            Platform.runLater(() -> tradesReload.apply());
-        }
-    }
-
-    private void reloadOrders() {
-        LOGGER.debug("Reloading asks/bids list.");
-
-        if (ordersReload != null) {
-            Platform.runLater(() -> ordersReload.apply());
-        }
-    }
-
-    private void addOrdersList() {
-        LOGGER.debug("Adding new itens to asks/bids list.");
-
-        if (addOrders != null) {
-            List<Order> addBidsList = new ArrayList<>(toAddBidList);
-            List<Order> addAsksList = new ArrayList<>(toAddAskList);
-
-            Platform.runLater(() -> addOrders.accept(addBidsList, addAsksList));
-        }
-
-        toAddBidList.clear();
-        toAddAskList.clear();
-    }
-
-    private void removeOrdersList() {
-        LOGGER.debug("Removing itens from asks/bids list.");
-
-        if (removeOrders != null) {
-            List<Order> removeBidsList = new ArrayList<>(toRemoveBidList);
-            List<Order> removeAsksList = new ArrayList<>(toRemoveAskList);
-
-            Platform.runLater(() -> removeOrders.accept(removeBidsList, removeAsksList));
-        }
-
-        toRemoveBidList.clear();
-        toRemoveAskList.clear();
-    }*/
 }

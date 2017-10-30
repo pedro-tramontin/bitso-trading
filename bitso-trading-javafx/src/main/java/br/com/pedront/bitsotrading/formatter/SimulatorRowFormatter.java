@@ -6,15 +6,18 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.util.Callback;
 
-public class SimulatorRowFormatter<S, String> implements
-    Callback<TableColumn<S, String>, TableCell<S, String>> {
+/**
+ * Formatter for a TableRow with simulated Trade.<br/>
+ * Displays the background with a different color.
+ */
+public class SimulatorRowFormatter<S, T> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
 
     @Override
-    public TableCell<S, String> call(TableColumn<S, String> p) {
-        TableCell<S, String> cell = new TableCell<S, String>() {
+    public TableCell<S, T> call(TableColumn<S, T> p) {
+        return new TableCell<S, T>() {
 
             @Override
-            public void updateItem(String item, boolean empty) {
+            public void updateItem(T item, boolean empty) {
                 if (item == getItem()) {
                     return;
                 }
@@ -27,19 +30,15 @@ public class SimulatorRowFormatter<S, String> implements
                     super.setGraphic(null);
                 }
 
-                if (!isEmpty()) {
-                    TableRow tableRow = getTableRow();
-                    Trade trade = (Trade) tableRow.getItem();
+                TableRow tableRow = getTableRow();
+                Trade trade = (Trade) tableRow.getItem();
 
-                    if (trade != null && trade.isSimulated()) {
-                        tableRow.setStyle("-fx-background-color: #f8d7da");
-                    } else {
-                        tableRow.setStyle("");
-                    }
+                if (trade != null && trade.isSimulated()) {
+                    tableRow.setStyle("-fx-background-color: #f8d7da");
+                } else {
+                    tableRow.setStyle("");
                 }
             }
         };
-
-        return cell;
     }
 }

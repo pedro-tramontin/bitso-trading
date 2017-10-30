@@ -7,13 +7,10 @@ import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade;
+import br.com.pedront.bitsotrading.model.Trade;
 
 /**
- * @author ptramontin
- * @version $Revision: $<br/>
- *          $Id: $
- * @since 10/20/17 4:37 PM
+ * Converts the Trade mapping from the Bitso API to the Trade model used in the TableView.
  */
 public class TradeDTOConverter {
 
@@ -24,9 +21,14 @@ public class TradeDTOConverter {
      */
     private static final String BITSO_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss[.SSS]Z";
 
+    /** Formatter for UTC */
     private static final DateTimeFormatter utcFormatter = initUtcFormatter();
 
+    /** Local date/time formatter */
     private static final DateTimeFormatter localFormatter = initLocalFormatter();
+
+    private TradeDTOConverter() {
+    }
 
     private static DateTimeFormatter initLocalFormatter() {
         return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault());
@@ -40,13 +42,22 @@ public class TradeDTOConverter {
         return localFormatter.format(OffsetDateTime.parse(iso8601Timestamp, utcFormatter));
     }
 
-    private static br.com.pedront.bitsotrading.model.Trade convert(final Trade trade) {
-        return new br.com.pedront.bitsotrading.model.Trade(fromISO8601ToRFC1123(trade.getCreatedAt()), trade.getMakerSide(), trade
-                .getAmount(),
+    /**
+     * Converts a single Trade
+     */
+    private static Trade convert(
+            final br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade trade) {
+        return new Trade(fromISO8601ToRFC1123(trade.getCreatedAt()),
+                trade.getMakerSide(), trade
+                        .getAmount(),
                 trade.getPrice(), trade.getTid());
     }
 
-    public static List<br.com.pedront.bitsotrading.model.Trade> convert(final List<Trade> trades) {
+    /**
+     * Converts a list of Trades
+     */
+    public static List<Trade> convert(
+            final List<br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade> trades) {
         return trades.stream().map(TradeDTOConverter::convert).collect(Collectors.toList());
     }
 

@@ -14,8 +14,8 @@ public class OrderBook {
 
     private static OrderBook initNullOrderBook() {
         OrderBook orderBook = new OrderBook();
-        orderBook.setAsks(Collections.EMPTY_LIST);
-        orderBook.setBids(Collections.EMPTY_LIST);
+        orderBook.setAsks(Collections.emptyList());
+        orderBook.setBids(Collections.emptyList());
 
         return orderBook;
     }
@@ -76,16 +76,16 @@ public class OrderBook {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-            .append("OrderBook [")//
-            .append("asks=")//
-            .append(asks)//
-            .append(",bids=")//
-            .append(bids)//
-            .append(",updatedAt=\"")//
-            .append(updatedAt).append("\"")//
-            .append(",sequence=\"")//
-            .append(sequence).append("\"")//
-            .append("]");
+                .append("OrderBook [")//
+                .append("asks=")//
+                .append(asks)//
+                .append(",bids=")//
+                .append(bids)//
+                .append(",updatedAt=\"")//
+                .append(updatedAt).append("\"")//
+                .append(",sequence=\"")//
+                .append(sequence).append("\"")//
+                .append("]");
         return builder.toString();
     }
 }

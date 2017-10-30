@@ -1,5 +1,5 @@
 package br.com.pedront.bitsotrading.wrapper;
 
-public enum DiffOrderStatus {
+public enum OrderStatus {
     OPEN, COMPLETED, CANCELED, UNKNOWN
 }

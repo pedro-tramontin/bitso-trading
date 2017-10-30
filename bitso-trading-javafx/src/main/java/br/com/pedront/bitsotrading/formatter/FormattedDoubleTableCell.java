@@ -4,39 +4,46 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 
-public class FormattedDoubleTableCell<Trade, String> implements
-    Callback<TableColumn<Trade, String>, TableCell<Trade, String>> {
+/**
+ * Formatter used for double values.<br/>
+ * By default it uses the pattern '%.2f', but it can be informed in jxml by using the parameter <code>pattern</code>.
+ */
+public class FormattedDoubleTableCell<S, T> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
 
-    private java.lang.String pattern;
+    private static final String DEFAULT_DOUBLE_PATTERN = "%.2f";
+
+    /** Pattern to format the double value */
+    private String pattern;
 
     public FormattedDoubleTableCell() {
-        this.pattern = "%.2f";
+        this.pattern = DEFAULT_DOUBLE_PATTERN;
     }
 
-    public java.lang.String getPattern() {
+    /** @noinspection WeakerAccess */
+    public String getPattern() {
         return pattern;
     }
 
-    public void setPattern(java.lang.String pattern) {
+    /** @noinspection unused */
+    public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public TableCell<Trade, String> call(TableColumn<Trade, String> p) {
-        TableCell<Trade, String> cell = new TableCell<Trade, String>() {
+    public TableCell<S, T> call(TableColumn<S, T> column) {
+        return new TableCell<S, T>() {
 
             @Override
-            public void updateItem(Object item, boolean empty) {
+            public void updateItem(T item, boolean empty) {
                 if (item == getItem()) {
                     return;
                 }
-                super.updateItem((String) item, empty);
+                super.updateItem(item, empty);
                 if (item == null) {
                     super.setText(null);
                     super.setGraphic(null);
                 } else if (item instanceof Double) {
-                    super.setText(java.lang.String.format(getPattern(), item));
+                    super.setText(String.format(getPattern(), item));
                     super.setGraphic(null);
                 } else {
                     super.setText(item.toString());
@@ -44,7 +51,5 @@ public class FormattedDoubleTableCell<Trade, String> implements
                 }
             }
         };
-
-        return cell;
     }
 }

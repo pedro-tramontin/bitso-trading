@@ -1,10 +1,14 @@
 package br.com.pedront.bitsotrading.service.dto;
 
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiffOrderData implements Cloneable {
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
+
+/**
+ * The data produced by the {@link br.com.pedront.bitsotrading.service.DiffOrderConsumer}.
+ */
+public class DiffOrderData {
 
     private List<Order> addBidList;
 
@@ -20,6 +24,18 @@ public class DiffOrderData implements Cloneable {
 
     public DiffOrderData() {
         reset();
+    }
+
+    /**
+     * Copy constructor
+     */
+    public DiffOrderData(DiffOrderData original) {
+        this.addBidList = new ArrayList<>(original.addBidList);
+        this.addAskList = new ArrayList<>(original.addAskList);
+        this.removeBidList = new ArrayList<>(original.removeBidList);
+        this.removeAskList = new ArrayList<>(original.removeAskList);
+        this.newTrades = original.newTrades;
+        this.reloadOrders = original.reloadOrders;
     }
 
     public void reset() {
@@ -75,6 +91,7 @@ public class DiffOrderData implements Cloneable {
         return reloadOrders;
     }
 
+    /** @noinspection WeakerAccess */
     public void setReloadOrders(Boolean value) {
         this.reloadOrders = value;
     }
@@ -83,18 +100,5 @@ public class DiffOrderData implements Cloneable {
         reset();
         setNewTrades(true);
         setReloadOrders(true);
-    }
-
-    @Override
-    public DiffOrderData clone() {
-        DiffOrderData cloned = new DiffOrderData();
-        cloned.newTrades = newTrades;
-        cloned.reloadOrders = reloadOrders;
-        cloned.addBidList = new ArrayList<>(addBidList);
-        cloned.addAskList = new ArrayList<>(addAskList);
-        cloned.removeBidList = new ArrayList<>(removeBidList);
-        cloned.removeAskList = new ArrayList<>(removeAskList);
-
-        return cloned;
     }
 }
