@@ -3,13 +3,12 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'de.dynamicfiles.projects.gradle.plugins:javafx-gradle-plugin:8.8.2'
         classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
     }
 }
 
 apply plugin: 'java'
-apply plugin: 'javafx-gradle-plugin'
+apply plugin: 'application'
 apply plugin: "io.spring.dependency-management"
 
 sourceCompatibility = 1.8
@@ -18,16 +17,14 @@ repositories {
     mavenCentral()
 }
 
-jfx {
-    mainClass = 'br.com.pedront.bitsotrading.Main'
-}
-
 dependencyManagement {
     imports {
         mavenBom 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
         mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Dalston.SR4'
     }
 }
+
+mainClassName = 'br.com.pedront.bitsotrading.Main'
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter'
