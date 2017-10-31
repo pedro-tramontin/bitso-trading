@@ -11,9 +11,9 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
 /**
- * JavaFX Service to get the trades from the Bitso Public REST API.<br/>
- * It fetches the lastest TRADES_FETCH_DEFAULT by default if no lastTid is informed, and the next trades following
- * lastTid if it is informed.
+ * JavaFX Service to get the trades from the Bitso Public REST API.<br/> It fetches the lastest
+ * TRADES_FETCH_DEFAULT by default if no lastTid is informed, and the next trades following lastTid
+ * if it is informed.
  */
 @org.springframework.stereotype.Service
 public class TradeService extends Service<List<Trade>> {
@@ -22,7 +22,9 @@ public class TradeService extends Service<List<Trade>> {
 
     private static final int TRADES_FETCH_DEFAULT = 50;
 
-    /** The lastTid to filter the trades */
+    /**
+     * The lastTid to filter the trades
+     */
     private Integer lastTid;
 
     @Autowired
@@ -38,11 +40,11 @@ public class TradeService extends Service<List<Trade>> {
 
                 if (lastTid == 0) {
                     newTradeList = TradeDTOConverter
-                            .convert(bitsoService.fetchTradesDesc(BOOK, TRADES_FETCH_DEFAULT));
+                        .convert(bitsoService.fetchTradesDesc(BOOK, TRADES_FETCH_DEFAULT));
                 } else {
                     newTradeList = TradeDTOConverter
-                            .convert(bitsoService
-                                    .fetchTradesAsc(BOOK, lastTid, TRADES_FETCH_DEFAULT));
+                        .convert(bitsoService
+                            .fetchTradesAsc(BOOK, lastTid, TRADES_FETCH_DEFAULT));
                 }
 
                 return newTradeList;
@@ -52,5 +54,10 @@ public class TradeService extends Service<List<Trade>> {
 
     public void setLastTid(Integer lastTid) {
         this.lastTid = lastTid;
+    }
+
+    @Override
+    public String toString() {
+        return "TradeService";
     }
 }

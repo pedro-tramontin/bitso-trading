@@ -38,4 +38,9 @@ public class OrderService extends Service<OrderBook> {
             }
         };
     }
+
+    @Override
+    public String toString() {
+        return "OrderService";
+    }
 }

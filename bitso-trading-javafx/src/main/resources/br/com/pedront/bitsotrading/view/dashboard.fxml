@@ -17,18 +17,17 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <BorderPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="br.com.pedront.bitsotrading.controller.DashboardController">
+    fx:controller="br.com.pedront.bitsotrading.controller.DashboardController">
     <center>
         <AnchorPane styleClass="parent-pane">
             <VBox styleClass="box-spacing" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10"
-                  AnchorPane.rightAnchor="0" AnchorPane.topAnchor="10">
+                AnchorPane.rightAnchor="0" AnchorPane.topAnchor="10">
                 <HBox styleClass="box-spacing" VBox.vgrow="ALWAYS">
                     <VBox HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-weight: bold;" text="BEST BIDS"/>
+                        <Label styleClass="title" text="BEST BIDS"/>
                         <StackPane VBox.vgrow="ALWAYS">
-                            <TableView fx:id="bestBidsTableView" layoutX="14.0" layoutY="59.0"
-                                       minHeight="200.0"
-                                       minWidth="300.0" prefHeight="200.0" prefWidth="300.0">
+                            <TableView fx:id="bestBidsTableView" styleClass="table-order-size"
+                                layoutX="14.0" layoutY="59.0">
                                 <columns>
                                     <TableColumn text="Amount">
                                         <cellValueFactory>
@@ -48,21 +47,16 @@
                                     </TableColumn>
                                 </columns>
                             </TableView>
-                            <HBox style="-fx-background-color: rgba(255, 255, 255, 0.6)"
-                                  alignment="CENTER"
-                                  fx:id="paneProgressBids">
-                                <ProgressIndicator minHeight="40" maxHeight="40" minWidth="40"
-                                                   maxWidth="40"/>
+                            <HBox fx:id="paneProgressBids" styleClass="progress-pane">
+                                <ProgressIndicator/>
                             </HBox>
                         </StackPane>
                     </VBox>
                     <VBox HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-weight: bold;" text="BEST ASKS"/>
+                        <Label styleClass="title" text="BEST ASKS"/>
                         <StackPane VBox.vgrow="ALWAYS">
                             <TableView fx:id="bestAsksTableView" layoutX="326.0" layoutY="59.0"
-                                       minHeight="200.0"
-                                       minWidth="300.0" prefHeight="200.0" prefWidth="300.0"
-                                       VBox.vgrow="ALWAYS">
+                                styleClass="table-order-size" VBox.vgrow="ALWAYS">
                                 <columns>
                                     <TableColumn text="Amount">
                                         <cellValueFactory>
@@ -82,22 +76,17 @@
                                     </TableColumn>
                                 </columns>
                             </TableView>
-                            <HBox style="-fx-background-color: rgba(255, 255, 255, 0.6)"
-                                  alignment="CENTER"
-                                  fx:id="paneProgressAsks">
-                                <ProgressIndicator minHeight="40" maxHeight="40" minWidth="40"
-                                                   maxWidth="40"/>
+                            <HBox fx:id="paneProgressAsks" styleClass="progress-pane">
+                                <ProgressIndicator/>
                             </HBox>
                         </StackPane>
                     </VBox>
                 </HBox>
                 <VBox VBox.vgrow="ALWAYS">
-                    <Label style="-fx-font-weight: bold;" text="TRADES"/>
+                    <Label styleClass="title" text="TRADES"/>
                     <StackPane VBox.vgrow="ALWAYS">
                         <TableView fx:id="tradesTableView" layoutX="14.0" layoutY="220.0"
-                                   minHeight="247.0"
-                                   minWidth="607.0"
-                                   prefHeight="247.0" prefWidth="607.0" VBox.vgrow="ALWAYS">
+                            VBox.vgrow="ALWAYS" styleClass="table-trade-size">
                             <columns>
                                 <TableColumn text="Created At">
                                     <cellValueFactory>
@@ -135,11 +124,8 @@
                                 </TableColumn>
                             </columns>
                         </TableView>
-                        <HBox style="-fx-background-color: rgba(255, 255, 255, 0.6)"
-                              alignment="CENTER"
-                              fx:id="paneProgressTrades">
-                            <ProgressIndicator minHeight="40" maxHeight="40" minWidth="40"
-                                               maxWidth="40"/>
+                        <HBox fx:id="paneProgressTrades" styleClass="progress-pane">
+                            <ProgressIndicator/>
                         </HBox>
                     </StackPane>
                 </VBox>
@@ -153,71 +139,43 @@
                 <Insets bottom="10" left="10" right="10" top="10"/>
             </BorderPane.margin>
 
-            <VBox maxWidth="200.0"
-                  style="-fx-border-color: #cccccc; -fx-border-width: 0px 0px 0px 2px;"
-                  AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10"
-                  AnchorPane.topAnchor="10">
-                <padding>
-                    <Insets bottom="10" left="20" right="10" top="10"/>
-                </padding>
+            <VBox AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10"
+                AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10" styleClass="right-panel">
 
-                <Label style="-fx-font-weight: bold;" text="CONFIGURATION"/>
+                <Label styleClass="title" text="CONFIGURATION"/>
 
-                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
-                    <padding>
-                        <Insets top="20"/>
-                    </padding>
-
+                <HBox styleClass="box-spacing,double-top-padding,form-box">
                     <Label text="X:"/>
-                    <TextField maxWidth="100.0" promptText="X" text="10" fx:id="xTextField"/>
+                    <TextField fx:id="xTextField" promptText="X"/>
                 </HBox>
 
-                <Label style="-fx-font-size: 10px;"
-                       text="THE NUMBER OF BIDS, ASKS, AND TRADES TO SHOW"
-                       wrapText="true"/>
+                <Label styleClass="label-description"
+                    text="THE NUMBER OF BIDS, ASKS, AND TRADES TO SHOW"/>
 
-                <Label style="-fx-padding: 40px 0px 0px 0px;"
-                       text="CONTRARIAN TRADING STRATEGY SIMULATION"
-                       wrapText="true"/>
+                <Label styleClass="label-simulator-title"
+                    text="CONTRARIAN TRADING STRATEGY SIMULATION"/>
 
-                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
-                    <padding>
-                        <Insets top="10"/>
-                    </padding>
-                    <Label fx:id="simulatorLabel" alignment="CENTER" minHeight="20.0"
-                           minWidth="150.0"
-                           style="-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;                                 -fx-border-color: #f5c6cb; -fx-border-width: 1px;"
-                           text="DISABLED"/>
+                <HBox styleClass="box-spacing,simple-top-padding,form-box">
+                    <Label fx:id="simulateLabel" styleClass="label-simulator, simulator-off"
+                        text="DISABLED"/>
                 </HBox>
 
-                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
-                    <padding>
-                        <Insets top="10"/>
-                    </padding>
-
+                <HBox styleClass="box-spacing,simple-top-padding,form-box">
                     <Label text="M:"/>
-                    <TextField fx:id="mTextField" maxWidth="100.0" promptText="M"/>
+                    <TextField fx:id="mTextField" promptText="M"/>
                 </HBox>
 
-                <Label style="-fx-font-size: 10px;" text="THE NUMBER OF UPTICKS" wrapText="true"/>
+                <Label styleClass="label-description" text="THE NUMBER OF UPTICKS"/>
 
-                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
-                    <padding>
-                        <Insets top="10"/>
-                    </padding>
-
+                <HBox styleClass="box-spacing,simple-top-padding,form-box">
                     <Label text="N:"/>
-                    <TextField fx:id="nTextField" maxWidth="100.0" promptText="N"/>
+                    <TextField fx:id="nTextField" promptText="N"/>
                 </HBox>
 
-                <Label style="-fx-font-size: 10px;" text="THE NUMBER OF DOWNTICKS" wrapText="true"/>
+                <Label styleClass="label-description" text="THE NUMBER OF DOWNTICKS"/>
 
-                <HBox alignment="CENTER_LEFT" styleClass="box-spacing">
-                    <padding>
-                        <Insets top="10"/>
-                    </padding>
-
-                    <Button fx:id="simulatorToggleButton" minWidth="80.0" text="ENABLE"/>
+                <HBox styleClass="box-spacing,simple-top-padding,form-box">
+                    <Button fx:id="simulateButton" text="ENABLE"/>
                 </HBox>
             </VBox>
         </AnchorPane>

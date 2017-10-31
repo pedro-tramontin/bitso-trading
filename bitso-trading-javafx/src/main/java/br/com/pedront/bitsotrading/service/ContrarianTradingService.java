@@ -66,7 +66,7 @@ public class ContrarianTradingService {
         if (counter.equals(upticks)) {
             simulatedTrade = new Trade(newTrade, "sell", 1.0);
             counter = 0;
-        } else if (counter.equals(downTicks)) {
+        } else if (counter.equals(-downTicks)) {
             simulatedTrade = new Trade(newTrade, "buy", 1.0);
             counter = 0;
         }

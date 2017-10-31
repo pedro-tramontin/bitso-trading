@@ -7,8 +7,8 @@ import javafx.scene.control.TableRow;
 import javafx.util.Callback;
 
 /**
- * Formatter for a TableRow with simulated Trade.<br/>
- * Displays the background with a different color.
+ * Formatter for a TableRow with simulated Trade.<br/> Displays the background with a different
+ * color.
  */
 public class SimulatorRowFormatter<S, T> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
 
@@ -34,11 +34,26 @@ public class SimulatorRowFormatter<S, T> implements Callback<TableColumn<S, T>, 
                 Trade trade = (Trade) tableRow.getItem();
 
                 if (trade != null && trade.isSimulated()) {
-                    tableRow.setStyle("-fx-background-color: #f8d7da");
+                    if ("".equals(tableRow.getStyle())) {
+                        //tableRow.setStyle("-fx-background-color: #f8d7da");
+                        tableRow.getStyleClass().clear();
+                        tableRow.getStyleClass().add("table-row-simulated");
+
+                        forceRowRedraw(tableRow);
+                    }
                 } else {
-                    tableRow.setStyle("");
+                    if (!"".equals(tableRow.getStyle())) {
+                        tableRow.setStyle("");
+
+                        forceRowRedraw(tableRow);
+                    }
                 }
             }
         };
+    }
+
+    private static void forceRowRedraw(TableRow tableRow) {
+        tableRow.setVisible(false);
+        tableRow.setVisible(true);
     }
 }

@@ -39,7 +39,7 @@ public class OrderBook {
     /**
      * Increasing integer value for each order book update.
      */
-    private String sequence;
+    private Long sequence;
 
     public List<Order> getAsks() {
         return asks;
@@ -65,27 +65,27 @@ public class OrderBook {
         this.updatedAt = updatedAt;
     }
 
-    public String getSequence() {
+    public Long getSequence() {
         return sequence;
     }
 
-    public void setSequence(final String sequence) {
+    public void setSequence(final Long sequence) {
         this.sequence = sequence;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("OrderBook [")//
-                .append("asks=")//
-                .append(asks)//
-                .append(",bids=")//
-                .append(bids)//
-                .append(",updatedAt=\"")//
-                .append(updatedAt).append("\"")//
-                .append(",sequence=\"")//
-                .append(sequence).append("\"")//
-                .append("]");
+            .append("OrderBook [")//
+            .append("asks=")//
+            .append(asks)//
+            .append(",bids=")//
+            .append(bids)//
+            .append(",updatedAt=\"")//
+            .append(updatedAt).append("\"")//
+            .append(",sequence=\"")//
+            .append(sequence).append("\"")//
+            .append("]");
         return builder.toString();
     }
 }
