@@ -2,5 +2,5 @@ apply plugin: 'idea'
 
 allprojects {
     group 'br.com.pedront.bitsotrading'
-    version '1.0-SNAPSHOT'
+    version '1.0.0'
 }
