@@ -2,6 +2,24 @@ package br.com.pedront.bitsotrading.controller;
 
 import static javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.ResourceBundle;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.annotation.PreDestroy;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import br.com.pedront.bitsotrading.comparator.TradeComparator;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.DiffOrderMessage;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
@@ -15,17 +33,6 @@ import br.com.pedront.bitsotrading.service.TradeService;
 import br.com.pedront.bitsotrading.service.dto.DiffOrderData;
 import br.com.pedront.bitsotrading.websocket.DiffOrderWebSocketConsumer;
 import de.felixroske.jfxsupport.FXMLController;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.ResourceBundle;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -42,10 +49,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import javafx.util.Duration;
 
 /**
  * The Dashboard controller
@@ -60,6 +64,8 @@ public class DashboardController implements Initializable {
     private static final Integer M_INITIAL = 2;
 
     private static final Integer N_INITIAL = 2;
+
+    private static final Duration TRADES_POLL_PERIOD = Duration.seconds(20);
 
     private static final String LABEL_ENABLED_TEXT = "ENABLED";
 
@@ -183,7 +189,7 @@ public class DashboardController implements Initializable {
         configBinds();
         configCallbacks();
 
-        loadTrades();
+        startTrades();
         loadOrderBook();
     }
 
@@ -191,7 +197,7 @@ public class DashboardController implements Initializable {
         // Configure the chain of observables to sort and filter for each TableView
         sortedTrades = trades.sorted(new TradeComparator());
         filteredTrades = sortedTrades
-            .filtered(getFilterPredicate(sortedTrades, xProperty.intValue()));
+                .filtered(getFilterPredicate(sortedTrades, xProperty.intValue()));
         tradesTableView.setItems(filteredTrades);
 
         sortedBids = bids.sorted(Comparator.comparing(Order::getPrice).reversed());
@@ -226,9 +232,9 @@ public class DashboardController implements Initializable {
             updateFilteredTableView(filteredAsks, sortedAsks, newValue.intValue());
         });
         mProperty.addListener(
-            (observable, oldValue, newValue) -> simulator.setUpticks(newValue.intValue()));
+                (observable, oldValue, newValue) -> simulator.setUpticks(newValue.intValue()));
         nProperty.addListener(
-            (observable, oldValue, newValue) -> simulator.setDownTicks(newValue.intValue()));
+                (observable, oldValue, newValue) -> simulator.setDownTicks(newValue.intValue()));
 
         xTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if ("".equals(newValue)) {
@@ -243,25 +249,25 @@ public class DashboardController implements Initializable {
 
         // Convert the textProperty to intProperty to facilitate
         xProperty.bind(
-            Bindings.createIntegerBinding(textPropertyToInteger(xTextField.textProperty()),
-                xTextField.textProperty()));
+                Bindings.createIntegerBinding(textPropertyToInteger(xTextField.textProperty()),
+                        xTextField.textProperty()));
         mProperty.bind(
-            Bindings.createIntegerBinding(textPropertyToInteger(mTextField.textProperty()),
-                mTextField.textProperty()));
+                Bindings.createIntegerBinding(textPropertyToInteger(mTextField.textProperty()),
+                        mTextField.textProperty()));
         nProperty.bind(
-            Bindings.createIntegerBinding(textPropertyToInteger(nTextField.textProperty()),
-                nTextField.textProperty()));
+                Bindings.createIntegerBinding(textPropertyToInteger(nTextField.textProperty()),
+                        nTextField.textProperty()));
 
         // Bind the visibility of each progress component to each responsible service
         paneProgressTrades.visibleProperty()
-            .bind(tradeService.stateProperty()
-                .isEqualTo(Worker.State.RUNNING));
+                .bind(tradeService.stateProperty()
+                        .isEqualTo(Worker.State.RUNNING));
         paneProgressBids.visibleProperty()
-            .bind(orderService.stateProperty()
-                .isEqualTo(Worker.State.RUNNING));
+                .bind(orderService.stateProperty()
+                        .isEqualTo(Worker.State.RUNNING));
         paneProgressAsks.visibleProperty()
-            .bind(orderService.stateProperty()
-                .isEqualTo(Worker.State.RUNNING));
+                .bind(orderService.stateProperty()
+                        .isEqualTo(Worker.State.RUNNING));
     }
 
     @SuppressWarnings("unchecked")
@@ -288,9 +294,9 @@ public class DashboardController implements Initializable {
                 // Do the simulation for each new trade
                 // Add all the simulated trades do the trade lists
                 final List<Trade> simTrades = tradeList.stream()
-                    .map(simulator::simulate)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                        .map(simulator::simulate)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
                 trades.addAll(simTrades);
             }
@@ -303,18 +309,17 @@ public class DashboardController implements Initializable {
                 lastTid = sortedTrades.get(0).getTid();
             }
 
-            tradeService.reset();
             tradesTries = 3;
         });
 
         tradeService
-            .setOnFailed(event -> tradesTries = treatFailService(tradeService, tradesTries));
+                .setOnFailed(event -> tradesTries = treatFailService(tradeService, tradesTries));
 
         orderService.setOnSucceeded(event -> {
             OrderBook orderBook = (OrderBook) event.getSource().getValue();
 
             LOGGER.debug("New order book, bids size {}, asks size {}.", orderBook.getBids().size(),
-                orderBook.getAsks().size());
+                    orderBook.getAsks().size());
 
             bids.clear();
             bids.addAll(orderBook.getBids());
@@ -332,18 +337,18 @@ public class DashboardController implements Initializable {
         });
 
         orderService
-            .setOnFailed(event -> ordersTries = treatFailService(orderService, ordersTries));
+                .setOnFailed(event -> ordersTries = treatFailService(orderService, ordersTries));
     }
 
     private <T> void updateFilteredTableView(final FilteredList<T> filteredList,
-        final SortedList<T> sortedList, final Integer newValue) {
+            final SortedList<T> sortedList, final Integer newValue) {
         if (filteredList != null && sortedList != null) {
             filteredList.setPredicate(getFilterPredicate(sortedList, newValue));
         }
     }
 
     private <T> Predicate<T> getFilterPredicate(final SortedList<T> sortedList,
-        final Integer newValue) {
+            final Integer newValue) {
 
         return p -> sortedList.indexOf(p) < newValue;
     }
@@ -362,7 +367,7 @@ public class DashboardController implements Initializable {
         Integer triesNewValue = tries;
 
         LOGGER
-            .info("Something went wrong with service {}, gonna try {} more times.", service, tries);
+                .info("Something went wrong with service {}, gonna try {} more times.", service, tries);
 
         if (tries > 0) {
             triesNewValue = tries - 1;
@@ -390,7 +395,7 @@ public class DashboardController implements Initializable {
     }
 
     private void toggleSimulatorButton(final String buttonText, final String labelText,
-        final String styleClass) {
+            final String styleClass) {
         simulateButton.setText(buttonText);
 
         simulateLabel.setText(labelText);
@@ -399,22 +404,23 @@ public class DashboardController implements Initializable {
         simulateLabel.getStyleClass().add(styleClass);
     }
 
-    private void loadTrades() {
+    private void startTrades() {
         if (tradeService.getState() != Worker.State.READY) {
             LOGGER.error("The TradeService is not in the READY state, it's in {}.",
-                tradeService.getState());
-        } else {
-            LOGGER.debug("Loading new trades.");
-
-            tradeService.setLastTid(lastTid);
-            tradeService.start();
+                    tradeService.getState());
         }
+
+        LOGGER.debug("Loading new trades.");
+
+        tradeService.setPeriod(TRADES_POLL_PERIOD);
+        tradeService.setLastTid(0);
+        tradeService.start();
     }
 
     private void loadOrderBook() {
         if (orderService.getState() != Worker.State.READY) {
             LOGGER.error("The OrderService is not in the READY state, it's in {}.",
-                orderService.getState());
+                    orderService.getState());
         } else {
             LOGGER.debug("Loading bids/asks.");
 
@@ -427,10 +433,10 @@ public class DashboardController implements Initializable {
 
     private void applyDiffOrderData(DiffOrderData diffOrderData) {
         LOGGER.debug(
-            "Diff-Order, remove bids {}, add bids {}, remove asks {}, add asks {}, reload trades {}, reload order book {}",
-            diffOrderData.getRemoveBidList().size(), diffOrderData.getAddBidList().size(),
-            diffOrderData.getRemoveAskList().size(), diffOrderData.getAddAskList().size(),
-            diffOrderData.hasNewTrades(), diffOrderData.reloadOrder());
+                "Diff-Order, remove bids {}, add bids {}, remove asks {}, add asks {}, reload trades {}, reload order book {}",
+                diffOrderData.getRemoveBidList().size(), diffOrderData.getAddBidList().size(),
+                diffOrderData.getRemoveAskList().size(), diffOrderData.getAddAskList().size(),
+                diffOrderData.reloadTrades(), diffOrderData.reloadOrder());
 
         diffOrderData.getRemoveBidList().forEach(this::removeBidIfPresent);
         bids.addAll(diffOrderData.getAddBidList());
@@ -440,8 +446,8 @@ public class DashboardController implements Initializable {
         asks.addAll(diffOrderData.getAddAskList());
         updateFilteredTableView(filteredAsks, sortedAsks, xProperty.intValue());
 
-        if (diffOrderData.hasNewTrades()) {
-            loadTrades();
+        if (diffOrderData.reloadTrades()) {
+            startTrades();
         }
 
         if (diffOrderData.reloadOrder()) {

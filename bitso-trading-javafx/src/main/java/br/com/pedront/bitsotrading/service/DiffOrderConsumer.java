@@ -116,9 +116,9 @@ public class DiffOrderConsumer extends Thread {
             .map(DiffOrderWrapper::newWrapper)
             .filter(DiffOrderWrapper::isValid)
             .forEach(wrapper -> {
-                if (wrapper.status() == OrderStatus.COMPLETED) {
-                    diffOrderData.setNewTrades(true);
-                }
+                /*if (wrapper.status() == OrderStatus.COMPLETED) {
+                    diffOrderData.setReloadTrades(true);
+                }*/
 
                 if (wrapper.getOrderSide() == OrderSide.BUY) {
                     diffOrderData.removeBid(wrapper.getOrder(message.getBook()));
