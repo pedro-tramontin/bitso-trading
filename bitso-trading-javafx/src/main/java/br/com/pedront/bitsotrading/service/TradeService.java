@@ -1,17 +1,20 @@
 package br.com.pedront.bitsotrading.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import br.com.pedront.bitsotrading.converter.TradeDTOConverter;
 import br.com.pedront.bitsotrading.core.service.BitsoService;
 import br.com.pedront.bitsotrading.model.Trade;
-import java.util.List;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * JavaFX Service to get the trades from the Bitso Public REST API.<br/> It fetches the lastest
- * TRADES_FETCH_DEFAULT by default if no x is informed, and the next trades following x if it is
+ * JavaFX Service to get the trades from the Bitso Public REST API.<br/>
+ * It fetches the lastest TRADES_FETCH_DEFAULT by default if no x is informed, and the next trades following x if it is
  * informed.
  */
 @org.springframework.stereotype.Service
@@ -19,12 +22,7 @@ public class TradeService extends ScheduledService<List<Trade>> {
 
     private static final String BOOK = "btc_mxn";
 
-    private static final int TRADES_FETCH_DEFAULT = 50;
-
-    /**
-     * The lastTid to filter the trades
-     */
-    private Integer lastTid;
+    private Long lastTid;
 
     private SimpleIntegerProperty cacheSize;
 
@@ -34,7 +32,7 @@ public class TradeService extends ScheduledService<List<Trade>> {
     private BitsoService bitsoService;
 
     public TradeService() {
-        this.lastTid = 0;
+        this.lastTid = 0L;
         this.cacheSize = new SimpleIntegerProperty();
         this.x = new SimpleIntegerProperty();
     }
@@ -45,18 +43,33 @@ public class TradeService extends ScheduledService<List<Trade>> {
 
             @Override
             protected List<Trade> call() throws Exception {
-                List<Trade> newTradeList;
+                List<Trade> tradeList;
 
                 if (lastTid == 0) {
-                    newTradeList = TradeDTOConverter
-                        .convert(bitsoService.fetchTradesDesc(BOOK, TRADES_FETCH_DEFAULT));
+                    tradeList = bitsoService.fetchTradesDesc(BOOK, lastTid, x.intValue()).stream()
+                            .map(TradeDTOConverter::convert)
+                            .collect(Collectors.toList());
+
+                    lastTid = tradeList.get(0).getTid();
                 } else {
-                    newTradeList = TradeDTOConverter
-                        .convert(bitsoService
-                            .fetchTradesAsc(BOOK, lastTid, TRADES_FETCH_DEFAULT));
+                    tradeList = bitsoService.fetchTradesAsc(BOOK, lastTid, 2000).stream()
+                            .map(TradeDTOConverter::convert)
+                            .collect(Collectors.toList());
+
+                    lastTid = tradeList.get(tradeList.size() - 1).getTid();
+
+                    // Need to get older trades because the cache does not have enough itens
+                    if (cacheSize.intValue() + tradeList.size() < x.intValue()) {
+                        final List<Trade> olderTrades = bitsoService.fetchTradesDesc(BOOK, lastTid, x.intValue())
+                                .stream()
+                                .map(TradeDTOConverter::convert)
+                                .collect(Collectors.toList());
+
+                        tradeList.addAll(olderTrades);
+                    }
                 }
 
-                return newTradeList;
+                return tradeList;
             }
         };
     }
@@ -67,6 +80,11 @@ public class TradeService extends ScheduledService<List<Trade>> {
 
     public SimpleIntegerProperty xProperty() {
         return x;
+    }
+
+    public void restart() {
+        reset();
+        start();
     }
 
     @Override

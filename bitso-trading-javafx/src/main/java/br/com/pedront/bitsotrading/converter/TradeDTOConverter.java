@@ -1,13 +1,11 @@
 package br.com.pedront.bitsotrading.converter;
 
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradeDTO;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.List;
-import java.util.stream.Collectors;
 
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradeDTO;
 import br.com.pedront.bitsotrading.model.Trade;
 
 /**
@@ -16,9 +14,9 @@ import br.com.pedront.bitsotrading.model.Trade;
 public class TradeDTOConverter {
 
     /**
-     * The Bitso API ISO 8601 time patternz<br/> The predefined formatters
-     * DateTimeFormatter.ISO_OFFSET_DATE_TIME cannot be used, because the offset is expected to
-     * follow the pattern (+HH:mm:ss) instead of (+ZZZZ)
+     * The Bitso API ISO 8601 time patternz<br/>
+     * The predefined formatters DateTimeFormatter.ISO_OFFSET_DATE_TIME cannot be used, because the offset is expected
+     * to follow the pattern (+HH:mm:ss) instead of (+ZZZZ)
      */
     private static final String BITSO_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss[.SSS]Z";
 
@@ -37,7 +35,7 @@ public class TradeDTOConverter {
 
     private static DateTimeFormatter initLocalFormatter() {
         return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
-            .withZone(ZoneId.systemDefault());
+                .withZone(ZoneId.systemDefault());
     }
 
     private static DateTimeFormatter initUtcFormatter() {
@@ -49,18 +47,10 @@ public class TradeDTOConverter {
     }
 
     /**
-     * Converts a single TradeDTO
+     * Converts a single TradeDTO to a Trade model
      */
-    private static Trade convert(final TradeDTO tradeDTO) {
+    public static Trade convert(final TradeDTO tradeDTO) {
         return new Trade(fromISO8601ToRFC1123(tradeDTO.getCreatedAt()), tradeDTO.getMakerSide(),
-            tradeDTO.getAmount(), tradeDTO.getPrice(), tradeDTO.getTid());
+                tradeDTO.getAmount(), tradeDTO.getPrice(), tradeDTO.getTid());
     }
-
-    /**
-     * Converts a list of TradesDTO
-     */
-    public static List<Trade> convert(final List<TradeDTO> tradeDTOS) {
-        return tradeDTOS.stream().map(TradeDTOConverter::convert).collect(Collectors.toList());
-    }
-
 }

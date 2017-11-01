@@ -2,7 +2,7 @@ package br.com.pedront.bitsotrading.model;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 /**
@@ -23,7 +23,7 @@ public class Trade {
     private final SimpleDoubleProperty price = new SimpleDoubleProperty(0.0);
 
     /** Trade ID */
-    private final SimpleIntegerProperty tid = new SimpleIntegerProperty(0);
+    private final SimpleLongProperty tid = new SimpleLongProperty(0);
 
     /** Flag to show if this Trade is simulated or real */
     private final SimpleBooleanProperty simulated = new SimpleBooleanProperty(false);
@@ -104,17 +104,17 @@ public class Trade {
         this.price.set(price);
     }
 
-    public Integer getTid() {
+    public Long getTid() {
         return tid.get();
     }
 
     /** @noinspection unused */
-    public SimpleIntegerProperty tidProperty() {
+    public SimpleLongProperty tidProperty() {
         return tid;
     }
 
     /** @noinspection WeakerAccess */
-    public void setTid(Integer tid) {
+    public void setTid(Long tid) {
         this.tid.set(tid);
     }
 
