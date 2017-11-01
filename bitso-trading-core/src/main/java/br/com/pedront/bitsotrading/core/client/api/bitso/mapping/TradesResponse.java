@@ -34,7 +34,7 @@ public class TradesResponse {
     private String success;
 
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-    private List<Trade> payload;
+    private List<TradeDTO> payload;
 
     public String getSuccess() {
         return success;
@@ -44,11 +44,11 @@ public class TradesResponse {
         this.success = success;
     }
 
-    public List<Trade> getPayload() {
+    public List<TradeDTO> getPayload() {
         return payload;
     }
 
-    public void setPayload(final List<Trade> payload) {
+    public void setPayload(final List<TradeDTO> payload) {
         this.payload = payload;
     }
 

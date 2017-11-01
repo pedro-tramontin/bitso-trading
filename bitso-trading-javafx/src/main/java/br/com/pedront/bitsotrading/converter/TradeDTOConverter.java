@@ -1,5 +1,6 @@
 package br.com.pedront.bitsotrading.converter;
 
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradeDTO;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -10,28 +11,33 @@ import java.util.stream.Collectors;
 import br.com.pedront.bitsotrading.model.Trade;
 
 /**
- * Converts the Trade mapping from the Bitso API to the Trade model used in the TableView.
+ * Converts the TradeDTO mapping from the Bitso API to the TradeDTO model used in the TableView.
  */
 public class TradeDTOConverter {
 
     /**
-     * The Bitso API ISO 8601 time patternz<br/>
-     * The predefined formatters DateTimeFormatter.ISO_OFFSET_DATE_TIME cannot be used, because the offset is expected
-     * to follow the pattern (+HH:mm:ss) instead of (+ZZZZ)
+     * The Bitso API ISO 8601 time patternz<br/> The predefined formatters
+     * DateTimeFormatter.ISO_OFFSET_DATE_TIME cannot be used, because the offset is expected to
+     * follow the pattern (+HH:mm:ss) instead of (+ZZZZ)
      */
     private static final String BITSO_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss[.SSS]Z";
 
-    /** Formatter for UTC */
+    /**
+     * Formatter for UTC
+     */
     private static final DateTimeFormatter utcFormatter = initUtcFormatter();
 
-    /** Local date/time formatter */
+    /**
+     * Local date/time formatter
+     */
     private static final DateTimeFormatter localFormatter = initLocalFormatter();
 
     private TradeDTOConverter() {
     }
 
     private static DateTimeFormatter initLocalFormatter() {
-        return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault());
+        return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+            .withZone(ZoneId.systemDefault());
     }
 
     private static DateTimeFormatter initUtcFormatter() {
@@ -43,22 +49,18 @@ public class TradeDTOConverter {
     }
 
     /**
-     * Converts a single Trade
+     * Converts a single TradeDTO
      */
-    private static Trade convert(
-            final br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade trade) {
-        return new Trade(fromISO8601ToRFC1123(trade.getCreatedAt()),
-                trade.getMakerSide(), trade
-                        .getAmount(),
-                trade.getPrice(), trade.getTid());
+    private static Trade convert(final TradeDTO tradeDTO) {
+        return new Trade(fromISO8601ToRFC1123(tradeDTO.getCreatedAt()), tradeDTO.getMakerSide(),
+            tradeDTO.getAmount(), tradeDTO.getPrice(), tradeDTO.getTid());
     }
 
     /**
-     * Converts a list of Trades
+     * Converts a list of TradesDTO
      */
-    public static List<Trade> convert(
-            final List<br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade> trades) {
-        return trades.stream().map(TradeDTOConverter::convert).collect(Collectors.toList());
+    public static List<Trade> convert(final List<TradeDTO> tradeDTOS) {
+        return tradeDTOS.stream().map(TradeDTOConverter::convert).collect(Collectors.toList());
     }
 
 }

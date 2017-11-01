@@ -19,13 +19,25 @@ public class TradeService extends ScheduledService<List<Trade>> {
 
     private static final String BOOK = "btc_mxn";
 
+    private static final int TRADES_FETCH_DEFAULT = 50;
+
     /**
-     * The x most recent trades
+     * The lastTid to filter the trades
      */
+    private Integer lastTid;
+
+    private SimpleIntegerProperty cacheSize;
+
     private SimpleIntegerProperty x;
 
     @Autowired
     private BitsoService bitsoService;
+
+    public TradeService() {
+        this.lastTid = 0;
+        this.cacheSize = new SimpleIntegerProperty();
+        this.x = new SimpleIntegerProperty();
+    }
 
     @Override
     protected Task<List<Trade>> createTask() {
@@ -33,10 +45,24 @@ public class TradeService extends ScheduledService<List<Trade>> {
 
             @Override
             protected List<Trade> call() throws Exception {
-                return TradeDTOConverter
-                    .convert(bitsoService.fetchTradesDesc(BOOK, x.intValue()));
+                List<Trade> newTradeList;
+
+                if (lastTid == 0) {
+                    newTradeList = TradeDTOConverter
+                        .convert(bitsoService.fetchTradesDesc(BOOK, TRADES_FETCH_DEFAULT));
+                } else {
+                    newTradeList = TradeDTOConverter
+                        .convert(bitsoService
+                            .fetchTradesAsc(BOOK, lastTid, TRADES_FETCH_DEFAULT));
+                }
+
+                return newTradeList;
             }
         };
+    }
+
+    public SimpleIntegerProperty cacheSizeProperty() {
+        return cacheSize;
     }
 
     public SimpleIntegerProperty xProperty() {

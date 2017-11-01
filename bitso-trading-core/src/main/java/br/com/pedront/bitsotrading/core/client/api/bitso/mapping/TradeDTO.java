@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Payload from the Bitso public API endpoint: /trades<br/>
  */
-public class Trade {
+public class TradeDTO {
 
     /** Order book symbol */
     private String book;
@@ -24,7 +24,7 @@ public class Trade {
     /** Price per unit of Bitcoin */
     private Double price;
 
-    /** Trade ID */
+    /** TradeDTO ID */
     private Integer tid;
 
     public String getBook() {
@@ -78,7 +78,7 @@ public class Trade {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("Trade [")//
+                .append("TradeDTO [")//
                 .append("book=\"")//
                 .append(book).append("\"")//
                 .append(",createdAt=\"")//

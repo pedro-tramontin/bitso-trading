@@ -2,25 +2,6 @@ package br.com.pedront.bitsotrading.controller;
 
 import static javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.ResourceBundle;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import javafx.concurrent.Worker.State;
-import javax.annotation.PreDestroy;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import br.com.pedront.bitsotrading.comparator.TradeComparator;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.DiffOrderMessage;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Order;
@@ -34,6 +15,17 @@ import br.com.pedront.bitsotrading.service.TradeService;
 import br.com.pedront.bitsotrading.service.dto.DiffOrderData;
 import br.com.pedront.bitsotrading.websocket.DiffOrderWebSocketConsumer;
 import de.felixroske.jfxsupport.FXMLController;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.ResourceBundle;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -41,8 +33,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.concurrent.Service;
 import javafx.concurrent.Worker;
+import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -51,6 +43,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import javax.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The Dashboard controller
@@ -137,8 +133,7 @@ public class DashboardController implements Initializable {
     /* Last Trade ID used in TradeService */
     private Integer lastTid;
 
-    /* Tries to restart the Order/Trade services */
-    private Integer tradesTries;
+    /* Tries to restart the order book service */
     private Integer ordersTries;
 
     /* Queue to centralise the Diff-Order messages received from Bitso WebSocket */
@@ -177,7 +172,6 @@ public class DashboardController implements Initializable {
         // simple variables
         lastTid = 0;
         simulate = false;
-        tradesTries = 3;
         ordersTries = 3;
     }
 
@@ -278,8 +272,9 @@ public class DashboardController implements Initializable {
             .bind(orderService.stateProperty()
                 .isEqualTo(Worker.State.RUNNING));
 
-        // Bind the xProperty to the x value in TradeService used to limit the most recent x trades
+        // Bind X and CacheSize to the TradeService properties
         tradeService.xProperty().bind(xProperty);
+        tradeService.cacheSizeProperty().bind(trades.sizeProperty());
     }
 
     @SuppressWarnings("unchecked")
@@ -321,12 +316,7 @@ public class DashboardController implements Initializable {
             if (sortedTrades.size() > 0) {
                 lastTid = sortedTrades.get(0).getTid();
             }
-
-            tradesTries = 3;
         });
-
-        tradeService
-            .setOnFailed(event -> tradesTries = treatFailService(tradeService, tradesTries));
 
         orderService.setOnSucceeded(event -> {
             OrderBook orderBook = (OrderBook) event.getSource().getValue();
@@ -349,8 +339,18 @@ public class DashboardController implements Initializable {
             orderService.reset();
         });
 
-        orderService
-            .setOnFailed(event -> ordersTries = treatFailService(orderService, ordersTries));
+        orderService.setOnFailed(event -> {
+            LOGGER
+                .info("Something went wrong with service {}, gonna try {} more times.",
+                    orderService, ordersTries);
+
+            if (ordersTries > 0) {
+                ordersTries--;
+
+                orderService.reset();
+                orderService.start();
+            }
+        });
     }
 
     private <T> void updateFilteredTableView(final FilteredList<T> filteredList,
@@ -374,22 +374,6 @@ public class DashboardController implements Initializable {
 
             return 0;
         };
-    }
-
-    private Integer treatFailService(final Service service, final Integer tries) {
-        Integer triesNewValue = tries;
-
-        LOGGER
-            .info("Something went wrong with service {}, gonna try {} more times.", service, tries);
-
-        if (tries > 0) {
-            triesNewValue = tries - 1;
-
-            service.reset();
-            service.start();
-        }
-
-        return triesNewValue;
     }
 
     private void enableToggleButton() {

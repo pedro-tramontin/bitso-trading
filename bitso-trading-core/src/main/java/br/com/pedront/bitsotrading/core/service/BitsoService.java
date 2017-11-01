@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import br.com.pedront.bitsotrading.core.client.api.bitso.BitsoApiIntegration;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBook;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBookResponse;
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradeDTO;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradesResponse;
 
 /**
@@ -48,7 +48,7 @@ public class BitsoService {
      * @param limit
      *            the limit number of trades to be returned.
      */
-    public List<Trade> fetchTradesAsc(String book, Integer lastOID, Integer limit) {
+    public List<TradeDTO> fetchTradesAsc(String book, Integer lastOID, Integer limit) {
         TradesResponse tradesResponse = bitsoApiIntegration.trades(book, lastOID, "asc", limit);
 
         return tradesResponse.getPayload();
@@ -62,7 +62,7 @@ public class BitsoService {
      * @param limit
      *            the limit number of trades to be returned.
      */
-    public List<Trade> fetchTradesDesc(String book, Integer limit) {
+    public List<TradeDTO> fetchTradesDesc(String book, Integer limit) {
         TradesResponse tradesResponse = bitsoApiIntegration.trades(book, null, "desc", limit);
 
         return tradesResponse.getPayload();
