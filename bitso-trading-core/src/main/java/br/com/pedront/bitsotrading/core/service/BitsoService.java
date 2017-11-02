@@ -1,5 +1,9 @@
 package br.com.pedront.bitsotrading.core.service;
 
+import static br.com.pedront.bitsotrading.core.service.FetchOrder.ASC;
+import static br.com.pedront.bitsotrading.core.service.FetchOrder.DESC;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -9,8 +13,9 @@ import org.springframework.stereotype.Service;
 import br.com.pedront.bitsotrading.core.client.api.bitso.BitsoApiIntegration;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBook;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBookResponse;
-import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.Trade;
+import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradeDTO;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradesResponse;
+import br.com.pedront.bitsotrading.core.utils.ListUtils;
 
 /**
  * Encapsulates the calls to the Bitso API, with specific functions used by the application.
@@ -20,7 +25,9 @@ public class BitsoService {
 
     private static final Boolean AGGREGATE_ORDERS_DEFAULT = false;
 
-    public static final String DIFF_ORDER_CHANNEL = "diff-orders";
+    private static final String DIFF_ORDER_CHANNEL = "diff-orders";
+
+    private static final Integer FETCH_LIMIT = 100;
 
     @Autowired
     private BitsoApiIntegration bitsoApiIntegration;
@@ -42,16 +49,18 @@ public class BitsoService {
      * Fetches the trades in ascending order from the public REST API.
      *
      * @param book
-     *            the order book symbol.
+     *            order book symbol.
      * @param lastOID
-     *            the last order ID to be filtered.
-     * @param limit
-     *            the limit number of trades to be returned.
+     *            last order ID to be filtered.
+     * @param quantity
+     *            quantity of trades to be returned.
      */
-    public List<Trade> fetchTradesAsc(String book, Integer lastOID, Integer limit) {
-        TradesResponse tradesResponse = bitsoApiIntegration.trades(book, lastOID, "asc", limit);
-
-        return tradesResponse.getPayload();
+    public List<TradeDTO> fetchTradesAsc(final String book, final Long lastOID, final Integer quantity) {
+        if (quantity > FETCH_LIMIT) {
+            return fetchMoreThanLimit(book, lastOID, ASC, quantity);
+        } else {
+            return fetchInsideLimit(book, lastOID, ASC, quantity);
+        }
     }
 
     /**
@@ -59,13 +68,17 @@ public class BitsoService {
      *
      * @param book
      *            the order book symbol.
-     * @param limit
-     *            the limit number of trades to be returned.
+     * @param lastOID
+     *            last order ID to be filtered.
+     * @param quantity
+     *            quantity of trades to be returned.
      */
-    public List<Trade> fetchTradesDesc(String book, Integer limit) {
-        TradesResponse tradesResponse = bitsoApiIntegration.trades(book, null, "desc", limit);
-
-        return tradesResponse.getPayload();
+    public List<TradeDTO> fetchTradesDesc(final String book, final Long lastOID, final Integer quantity) {
+        if (quantity > FETCH_LIMIT) {
+            return fetchMoreThanLimit(book, lastOID, DESC, quantity);
+        } else {
+            return fetchInsideLimit(book, lastOID, DESC, quantity);
+        }
     }
 
     /**
@@ -80,5 +93,64 @@ public class BitsoService {
         return BitsoWebSocketService
                 .subscribe(DIFF_ORDER_CHANNEL)
                 .with(messageConsumer);
+    }
+
+    /**
+     * Returns quantity if it is less than FETCH_LIMIT or FETCH_LIMIT otherwise
+     * 
+     * @param quantity
+     *            the quantity to test
+     */
+    private Integer getFetchMaxOr(Integer quantity) {
+        Integer fetchQuantity;
+        if (quantity > FETCH_LIMIT) {
+            fetchQuantity = FETCH_LIMIT;
+        } else {
+            fetchQuantity = quantity;
+        }
+
+        return fetchQuantity;
+    }
+
+    /**
+     * Fetches from trades public api more itens than the limit FETCH_LIMIT.
+     */
+    private List<TradeDTO> fetchMoreThanLimit(final String book, final Long lastOID, final FetchOrder order,
+            final Integer quantity) {
+        List<TradeDTO> response = new ArrayList<>();
+
+        Integer remaining = quantity;
+        Long currentOID = lastOID;
+
+        Boolean finished = false;
+        while (!finished && (remaining > 0)) {
+            Integer fetchCallQtd = getFetchMaxOr(remaining);
+
+            TradesResponse tradesResponse = bitsoApiIntegration.trades(book, currentOID, order.toString(),
+                    fetchCallQtd);
+
+            final List<TradeDTO> tradeList = tradesResponse.getPayload();
+
+            remaining -= tradeList.size();
+
+            if (tradeList.size() < fetchCallQtd) {
+                finished = true;
+            }
+
+            currentOID = ListUtils.getLastItem(tradeList).map(TradeDTO::getTid).orElse(currentOID);
+            response.addAll(tradesResponse.getPayload());
+        }
+
+        return response;
+    }
+
+    /**
+     * Call this function only when the desired quantity is less than the limit FETCH_LIMIT.
+     */
+    private List<TradeDTO> fetchInsideLimit(final String book, final Long lastOID, final FetchOrder order,
+            final Integer quantity) {
+        TradesResponse tradesResponse = bitsoApiIntegration.trades(book, lastOID, order.toString(), quantity);
+
+        return tradesResponse.getPayload();
     }
 }

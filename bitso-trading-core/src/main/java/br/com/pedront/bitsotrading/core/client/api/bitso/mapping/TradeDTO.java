@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Payload from the Bitso public API endpoint: /trades<br/>
  */
-public class Trade {
+public class TradeDTO {
 
     /** Order book symbol */
     private String book;
@@ -24,8 +24,8 @@ public class Trade {
     /** Price per unit of Bitcoin */
     private Double price;
 
-    /** Trade ID */
-    private Integer tid;
+    /** TradeDTO ID */
+    private Long tid;
 
     public String getBook() {
         return book;
@@ -67,18 +67,18 @@ public class Trade {
         this.price = price;
     }
 
-    public Integer getTid() {
+    public Long getTid() {
         return tid;
     }
 
-    public void setTid(final Integer tid) {
+    public void setTid(final Long tid) {
         this.tid = tid;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder()//
-                .append("Trade [")//
+                .append("TradeDTO [")//
                 .append("book=\"")//
                 .append(book).append("\"")//
                 .append(",createdAt=\"")//

@@ -20,8 +20,7 @@ import feign.Headers;
 public interface BitsoApiIntegration {
 
     /**
-     * This endpoint returns a list of existing exchange order books and their respective order
-     * placement limits.
+     * This endpoint returns a list of existing exchange order books and their respective order placement limits.
      */
     @RequestMapping(value = "/v3/available_books/", method = RequestMethod.GET)
     AvailableBooksResponse avaiableBooks();
@@ -29,36 +28,41 @@ public interface BitsoApiIntegration {
     /**
      * This endpoint returns trading information from the specified book.
      *
-     * @param book Specifies which book to use
+     * @param book
+     *            Specifies which book to use
      */
     @RequestMapping(value = "/v3/ticker/", method = RequestMethod.GET)
     TickerResponse ticker(@RequestParam(value = "book", required = false) String book);
 
     /**
-     * This endpoint returns a list of all open orders in the specified book. If the aggregate
-     * parameter is set to true, orders will be aggregated by price, and the response will only
-     * include the top 50 orders for each side of the book. If the aggregate parameter is set to
-     * false, the response will include the full order book.
+     * This endpoint returns a list of all open orders in the specified book. If the aggregate parameter is set to true,
+     * orders will be aggregated by price, and the response will only include the top 50 orders for each side of the
+     * book. If the aggregate parameter is set to false, the response will include the full order book.
      *
-     * @param book Specifies which book to use
-     * @param aggregate Specifies if orders should be aggregated by price.
+     * @param book
+     *            Specifies which book to use
+     * @param aggregate
+     *            Specifies if orders should be aggregated by price.
      */
     @RequestMapping(value = "/v3/order_book/", method = RequestMethod.GET)
     OrderBookResponse orderBook(@RequestParam("book") String book,
-        @RequestParam(value = "aggregate", required = false, defaultValue = "true") String aggregate);
+            @RequestParam(value = "aggregate", required = false, defaultValue = "true") String aggregate);
 
     /**
      * This endpoint returns a list of recent trades from the specified book.
      *
-     * @param book Specifies which book to use
-     * @param marker Returns objects that are older or newer (depending on 'sort?) than the object
-     * with this ID
-     * @param sort Specifies ordering direction of returned objects ('asc?, 'desc?)
-     * @param limit Specifies number of objects to return. (Max is 100)
+     * @param book
+     *            Specifies which book to use
+     * @param marker
+     *            Returns objects that are older or newer (depending on 'sort?) than the object with this ID
+     * @param sort
+     *            Specifies ordering direction of returned objects ('asc?, 'desc?)
+     * @param limit
+     *            Specifies number of objects to return. (Max is 100)
      */
     @RequestMapping(value = "/v3/trades/", method = RequestMethod.GET)
     TradesResponse trades(@RequestParam("book") String book,
-        @RequestParam(value = "marker", required = false) Integer marker,
-        @RequestParam(value = "sort", required = false, defaultValue = "desc") String sort,
-        @RequestParam(value = "limit", required = false, defaultValue = "25") Integer limit);
+            @RequestParam(value = "marker", required = false) Long marker,
+            @RequestParam(value = "sort", required = false, defaultValue = "desc") String sort,
+            @RequestParam(value = "limit", required = false, defaultValue = "25") Integer limit);
 }

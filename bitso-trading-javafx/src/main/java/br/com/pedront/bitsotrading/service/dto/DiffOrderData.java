@@ -18,7 +18,7 @@ public class DiffOrderData {
 
     private List<Order> removeAskList;
 
-    private Boolean newTrades;
+    private Boolean reloadTrades;
 
     private Boolean reloadOrders;
 
@@ -34,7 +34,7 @@ public class DiffOrderData {
         this.addAskList = new ArrayList<>(original.addAskList);
         this.removeBidList = new ArrayList<>(original.removeBidList);
         this.removeAskList = new ArrayList<>(original.removeAskList);
-        this.newTrades = original.newTrades;
+        this.reloadTrades = original.reloadTrades;
         this.reloadOrders = original.reloadOrders;
     }
 
@@ -43,7 +43,7 @@ public class DiffOrderData {
         this.addAskList = new ArrayList<>();
         this.removeBidList = new ArrayList<>();
         this.removeAskList = new ArrayList<>();
-        this.newTrades = false;
+        this.reloadTrades = false;
         this.reloadOrders = false;
     }
 
@@ -79,12 +79,12 @@ public class DiffOrderData {
         this.removeAskList.add(order);
     }
 
-    public Boolean hasNewTrades() {
-        return newTrades;
+    public Boolean reloadTrades () {
+        return reloadTrades;
     }
 
-    public void setNewTrades(Boolean newTrade) {
-        this.newTrades = newTrade;
+    public void setReloadTrades (Boolean newTrade) {
+        this.reloadTrades = newTrade;
     }
 
     public Boolean reloadOrder() {
@@ -98,7 +98,7 @@ public class DiffOrderData {
 
     public void setReloadLists() {
         reset();
-        setNewTrades(true);
+        setReloadTrades(true);
         setReloadOrders(true);
     }
 }

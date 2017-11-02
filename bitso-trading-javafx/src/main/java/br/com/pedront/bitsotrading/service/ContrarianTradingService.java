@@ -27,7 +27,7 @@ public class ContrarianTradingService {
     public void init(Integer upticks, Integer downTicks, Double lastTradePrice) {
         this.upticks = upticks;
         this.downTicks = downTicks;
-        this.lastTradePrice = lastTradePrice;
+        this.lastTradePrice = -1.0;
     }
 
     public void setUpticks(Integer upticks) {
@@ -54,24 +54,27 @@ public class ContrarianTradingService {
      * equals to the Trade being processed.<br/>
      * If the number of downticks is reached, a new simulated buy Trade is made, just like for the upticks.
      */
-    public Trade simulate(Trade newTrade) {
+    public Trade simulate(Trade trade) {
         Trade simulatedTrade = null;
 
-        if (newTrade.getPrice() > lastTradePrice) {
-            counter++;
-        } else if (newTrade.getPrice() < lastTradePrice) {
-            counter--;
+        // It is -1.0 on '0 tick'
+        if (lastTradePrice != -1.0) {
+            if (trade.getPrice() > lastTradePrice) {
+                counter++;
+            } else if (trade.getPrice() < lastTradePrice) {
+                counter--;
+            }
+
+            if (counter.equals(upticks)) {
+                simulatedTrade = new Trade(trade, "sell", 1.0);
+                counter = 0;
+            } else if (counter.equals(-downTicks)) {
+                simulatedTrade = new Trade(trade, "buy", 1.0);
+                counter = 0;
+            }
         }
 
-        if (counter.equals(upticks)) {
-            simulatedTrade = new Trade(newTrade, "sell", 1.0);
-            counter = 0;
-        } else if (counter.equals(-downTicks)) {
-            simulatedTrade = new Trade(newTrade, "buy", 1.0);
-            counter = 0;
-        }
-
-        lastTradePrice = newTrade.getPrice();
+        lastTradePrice = trade.getPrice();
 
         return simulatedTrade;
     }

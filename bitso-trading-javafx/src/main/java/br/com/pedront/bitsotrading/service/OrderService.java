@@ -28,13 +28,7 @@ public class OrderService extends Service<OrderBook> {
 
             @Override
             protected OrderBook call() throws Exception {
-                try {
-                    return bitsoService.fetchOrders(BOOK);
-                } catch (Exception e) {
-                    LOGGER.error("Something wrong happended with OrderService, stack trace:", e);
-
-                    return OrderBook.EMPTY;
-                }
+                return bitsoService.fetchOrders(BOOK);
             }
         };
     }
