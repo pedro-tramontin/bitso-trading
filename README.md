@@ -57,3 +57,15 @@ Just need to point out that once the TRACE level is enabled, a lot of logging wi
 ## Improvements
 * Create a custom ObservableList that don't need to reset the predicate to filter top N itens;
 * Internationalize the string;
+
+## Checklist
+
+| Feature | File name | Method name |
+|:-------:|:---------:|:-----------:|
+| Schedule the polling of trades over REST.| DashboardController.java | configServices |
+| Request a book snapshot over REST. | OrderService.java | orderBook |
+| Listen for diff-orders over websocket. | BitsoWebSocketService.java | onMessage |
+| Replay diff-orders after book snapshot. | DashboardController.java | applyDiffOrderData |
+| Use config option X to request recent trades. | TradeService.java | createTask |
+| Use config option X to limit number of ASKs displayed in UI. | DashboardController.java | configLists |
+| The loop that causes the trading algorithm to reevaluate. | DashboardController.java | generateSimulatedData |
