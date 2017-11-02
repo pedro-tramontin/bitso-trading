@@ -395,6 +395,7 @@ public class DashboardController implements Initializable {
         clearTradesListFromSimulatedData();
 
         trades.addAll(generateSimulatedData());
+        updateFilteredTableView(filteredTrades, sortedTrades, xProperty.intValue());
     }
 
     private void clearTradesListFromSimulatedData() {
