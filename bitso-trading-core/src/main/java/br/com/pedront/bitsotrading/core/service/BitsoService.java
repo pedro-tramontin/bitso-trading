@@ -15,6 +15,7 @@ import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBook;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.OrderBookResponse;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradeDTO;
 import br.com.pedront.bitsotrading.core.client.api.bitso.mapping.TradesResponse;
+import br.com.pedront.bitsotrading.core.utils.ListUtils;
 
 /**
  * Encapsulates the calls to the Bitso API, with specific functions used by the application.
@@ -26,7 +27,7 @@ public class BitsoService {
 
     private static final String DIFF_ORDER_CHANNEL = "diff-orders";
 
-    private static final Integer FETCH_LIMIT = 200;
+    private static final Integer FETCH_LIMIT = 100;
 
     @Autowired
     private BitsoApiIntegration bitsoApiIntegration;
@@ -119,19 +120,24 @@ public class BitsoService {
         List<TradeDTO> response = new ArrayList<>();
 
         Integer remaining = quantity;
+        Long currentOID = lastOID;
 
         Boolean finished = false;
-        while (!finished || (remaining > 0)) {
+        while (!finished && (remaining > 0)) {
             Integer fetchCallQtd = getFetchMaxOr(remaining);
 
-            TradesResponse tradesResponse = bitsoApiIntegration.trades(book, lastOID, order.toString(), fetchCallQtd);
+            TradesResponse tradesResponse = bitsoApiIntegration.trades(book, currentOID, order.toString(),
+                    fetchCallQtd);
 
-            remaining -= fetchCallQtd;
+            final List<TradeDTO> tradeList = tradesResponse.getPayload();
 
-            if (tradesResponse.getPayload().size() < fetchCallQtd) {
+            remaining -= tradeList.size();
+
+            if (tradeList.size() < fetchCallQtd) {
                 finished = true;
             }
 
+            currentOID = ListUtils.getLastItem(tradeList).map(TradeDTO::getTid).orElse(currentOID);
             response.addAll(tradesResponse.getPayload());
         }
 

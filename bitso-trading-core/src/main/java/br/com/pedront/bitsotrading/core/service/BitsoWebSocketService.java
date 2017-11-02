@@ -37,6 +37,8 @@ public class BitsoWebSocketService {
 
     private Consumer<String> messageProcessor;
 
+    private Session currentSession;
+
     private BitsoWebSocketService(String channel) {
         this.channel = channel;
         this.tries = 3;
@@ -69,16 +71,35 @@ public class BitsoWebSocketService {
             client.connectToServer(this, new URI(BITSO_WSS_URL));
         } catch (DeploymentException | IOException | URISyntaxException e) {
             LOGGER.error("Unexpected error with BitsoWebSocketService, stack trace", e);
+
+            if (tries > 0) {
+                tries--;
+                start();
+            }
         }
 
     }
 
     /**
-     * Executes the callback when the connection to the server is opened.
+     * Stops the current session
+     */
+    public void stop() {
+        try {
+            currentSession.close();
+        } catch (IOException e) {
+            LOGGER.error("Error closing current session.", e);
+        }
+    }
+
+    /**
+     * This callback gets executed when a new session is open.<br/>
+     * The connection to the WebSocket is done in {@link #start()}
      */
     @OnOpen
     public void onOpen(Session session) {
         LOGGER.debug("Connected to Bitso WebSocket server, sessionId={}", session.getId());
+
+        this.currentSession = session;
 
         try {
             LOGGER.debug("Subscribing to {} channel", channel);
@@ -99,7 +120,8 @@ public class BitsoWebSocketService {
     }
 
     /**
-     * Callback when a new diff-order message is received.
+     * The callback that is called when a new message arrives via WebSocket.<br/>
+     * The channel registration is done in {@link #onOpen(Session)}
      */
     @OnMessage
     public void onMessage(String message, Session session) {

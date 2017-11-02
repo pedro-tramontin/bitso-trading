@@ -28,7 +28,7 @@ public class Trade {
     /** Flag to show if this Trade is simulated or real */
     private final SimpleBooleanProperty simulated = new SimpleBooleanProperty(false);
 
-    public Trade(String createdAt, String makerSide, Double amount, Double price, Integer tid) {
+    public Trade(String createdAt, String makerSide, Double amount, Double price, Long tid) {
         setCreatedAt(createdAt);
         setMakerSide(makerSide);
         setAmount(amount);

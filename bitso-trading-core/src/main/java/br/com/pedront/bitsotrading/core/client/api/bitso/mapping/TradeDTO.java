@@ -25,7 +25,7 @@ public class TradeDTO {
     private Double price;
 
     /** TradeDTO ID */
-    private Integer tid;
+    private Long tid;
 
     public String getBook() {
         return book;
@@ -67,11 +67,11 @@ public class TradeDTO {
         this.price = price;
     }
 
-    public Integer getTid() {
+    public Long getTid() {
         return tid;
     }
 
-    public void setTid(final Integer tid) {
+    public void setTid(final Long tid) {
         this.tid = tid;
     }
 

@@ -1,12 +1,16 @@
 package br.com.pedront.bitsotrading.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import br.com.pedront.bitsotrading.converter.TradeDTOConverter;
 import br.com.pedront.bitsotrading.core.service.BitsoService;
+import br.com.pedront.bitsotrading.core.utils.ListUtils;
 import br.com.pedront.bitsotrading.model.Trade;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.ScheduledService;
@@ -20,9 +24,13 @@ import javafx.concurrent.Task;
 @org.springframework.stereotype.Service
 public class TradeService extends ScheduledService<List<Trade>> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(TradeService.class);
+
     private static final String BOOK = "btc_mxn";
 
-    private Long lastTid;
+    private Long newestTid;
+
+    private Long oldestTid;
 
     private SimpleIntegerProperty cacheSize;
 
@@ -32,7 +40,8 @@ public class TradeService extends ScheduledService<List<Trade>> {
     private BitsoService bitsoService;
 
     public TradeService() {
-        this.lastTid = 0L;
+        this.newestTid = Long.MIN_VALUE;
+        this.oldestTid = Long.MAX_VALUE;
         this.cacheSize = new SimpleIntegerProperty();
         this.x = new SimpleIntegerProperty();
     }
@@ -43,35 +52,49 @@ public class TradeService extends ScheduledService<List<Trade>> {
 
             @Override
             protected List<Trade> call() throws Exception {
-                List<Trade> tradeList;
+                List<Trade> ascList = new ArrayList<>();
+                List<Trade> descList = new ArrayList<>();
+                List<Trade> resultList = new ArrayList<>();
 
-                if (lastTid == 0) {
-                    tradeList = bitsoService.fetchTradesDesc(BOOK, lastTid, x.intValue()).stream()
-                            .map(TradeDTOConverter::convert)
-                            .collect(Collectors.toList());
+                // We already have some trading data, get more after the last one saved
+                if (hasLastTidSaved()) {
+                    ascList.addAll(
+                            bitsoService.fetchTradesAsc(BOOK, newestTid, x.intValue()).stream()
+                                    .map(TradeDTOConverter::convert)
+                                    .collect(Collectors.toList()));
 
-                    lastTid = tradeList.get(0).getTid();
-                } else {
-                    tradeList = bitsoService.fetchTradesAsc(BOOK, lastTid, 2000).stream()
-                            .map(TradeDTOConverter::convert)
-                            .collect(Collectors.toList());
-
-                    lastTid = tradeList.get(tradeList.size() - 1).getTid();
-
-                    // Need to get older trades because the cache does not have enough itens
-                    if (cacheSize.intValue() + tradeList.size() < x.intValue()) {
-                        final List<Trade> olderTrades = bitsoService.fetchTradesDesc(BOOK, lastTid, x.intValue())
-                                .stream()
-                                .map(TradeDTOConverter::convert)
-                                .collect(Collectors.toList());
-
-                        tradeList.addAll(olderTrades);
-                    }
+                    ListUtils.getLastItem(ascList).ifPresent(trade -> newestTid = Math.max(trade.getTid(), newestTid));
+                    ListUtils.getFirstItem(ascList).ifPresent(trade -> oldestTid = Math.min(trade.getTid(), oldestTid));
                 }
 
-                return tradeList;
+                // We don't have any data or the cached one is not enough
+                if (hasEnoughDataInCache(ascList)) {
+                    descList = bitsoService.fetchTradesDesc(BOOK, oldestTid, x.intValue())
+                            .stream()
+                            .map(TradeDTOConverter::convert)
+                            .collect(Collectors.toList());
+
+                    ListUtils.getFirstItem(descList)
+                            .ifPresent(trade -> newestTid = Math.max(trade.getTid(), newestTid));
+                    ListUtils.getLastItem(descList).ifPresent(trade -> oldestTid = Math.min(trade.getTid(), oldestTid));
+                }
+
+                resultList.addAll(ascList);
+                resultList.addAll(descList);
+
+                LOGGER.debug("TradeService returning {}", resultList.size());
+
+                return resultList;
             }
         };
+    }
+
+    private boolean hasEnoughDataInCache(final List<Trade> ascList) {
+        return newestTid.equals(Long.MIN_VALUE) || (cacheSize.intValue() + ascList.size()) < x.intValue();
+    }
+
+    private boolean hasLastTidSaved() {
+        return !newestTid.equals(Long.MIN_VALUE);
     }
 
     public SimpleIntegerProperty cacheSizeProperty() {
